@@ -1,98 +1,91 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+/**
+ * Main Cards List Screen
+ */
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import React, { useState, useCallback } from 'react';
+import { StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { Card } from '@/types/card.types';
+import { getCards } from '@/services/storage.service';
+import CardList from '@/components/cards/CardList';
+import { Colors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const [cards, setCards] = useState<Card[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadCards = useCallback(async () => {
+    try {
+      const loadedCards = await getCards();
+      setCards(loadedCards);
+    } catch (error) {
+      console.error('Error loading cards:', error);
+    }
+  }, []);
+
+  // Load cards when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadCards();
+    }, [loadCards])
+  );
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadCards();
+    setRefreshing(false);
+  }, [loadCards]);
+
+  const handleAddCard = () => {
+    router.push('/add-card');
+  };
+
+  const styles = getStyles(isDark);
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <CardList cards={cards} onRefresh={handleRefresh} refreshing={refreshing} />
+
+      <TouchableOpacity style={styles.fab} onPress={handleAddCard}>
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+const getStyles = (isDark: boolean) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+    },
+    fab: {
+      position: 'absolute',
+      right: 20,
+      bottom: 80, // Increased bottom margin to avoid tab bar
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: isDark ? Colors.dark.tint : Colors.light.tint,
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      zIndex: 1000,
+    },
+    fabText: {
+      color: '#fff',
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+  });

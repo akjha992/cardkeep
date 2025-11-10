@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "cardkeep",
-    "slug": "cardkeep",
+    "name": "CardVault",
+    "slug": "cardvault",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,9 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cardkeep.app"
     },
     "android": {
+      "package": "com.cardkeep.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -27,6 +29,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-secure-store",
       [
         "expo-splash-screen",
         {
@@ -43,6 +46,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d7141f4f-df5c-49cf-8da2-31c5269675b3"
+      }
     }
   }
 }
