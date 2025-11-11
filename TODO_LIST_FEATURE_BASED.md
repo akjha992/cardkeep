@@ -156,24 +156,53 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
-## Feature 4: Card Pinning
+## Feature 4: Search & Filter
+
+**Goal**: Users can search/filter cards by bank name.
+
+### 4.1 Search Bar Component
+- [x] Create `components/ui/SearchBar.tsx`
+- [x] Implement search input
+- [x] Add search icon
+- [x] Add clear button
+- [x] Add debouncing for search
+- [x] Add dark theme styling
+
+### 4.2 Filter Logic
+- [x] Update `services/cards.service.ts`
+- [x] Implement `filterCardsByBank(cards: Card[], bankName: string)`
+- [x] Filter cards by bank name (case-insensitive)
+- [x] Maintain sorting order (pinned first, then by usage)
+
+### 4.3 Integrate Search
+- [x] Add SearchBar to main screen
+- [x] Connect search input to filter logic
+- [x] Update CardList to show filtered results
+- [x] Clear search to show all cards
+- [x] Maintain pinned cards at top when filtering
+
+**Review Checkpoint**: ✅ Can search cards by bank name, and filtered results maintain sorting order.
+
+---
+
+## Feature 5: Card Pinning
 
 **Goal**: Users can pin cards to keep them at the top.
 
-### 4.1 Pin Toggle Functionality
+### 5.1 Pin Toggle Functionality
 - [ ] Add pin/unpin toggle to the long-press context menu on CardItem.
 - [ ] Add visual indicator (pin icon) for pinned cards
 - [ ] Implement `togglePin(id: string)` in storage service
 - [ ] Update card's `isPinned` property
 
-### 4.2 Pinned Cards Sorting
+### 5.2 Pinned Cards Sorting
 - [ ] Update sorting logic in cards service
 - [ ] Pinned cards always appear at top
 - [ ] Pinned cards excluded from usage-based sorting
 - [ ] Unpinned cards sorted by usage (as before)
 - [ ] Maintain pin status across app restarts
 
-### 4.3 UI Updates
+### 5.3 UI Updates
 - [ ] Style pin button appropriately
 - [ ] Show pinned indicator clearly
 - [ ] Add visual separation between pinned and unpinned cards (optional)
@@ -182,159 +211,11 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
-## Feature 5: Bank Selection & Logos
-
-**Goal**: Users can select from predefined banks, and bank logos appear on cards.
-
-### 5.1 Bank Constants
-- [ ] Create `constants/banks.ts`
-- [ ] Define bank list (HDFC, SBI, ICICI, AXIS)
-- [ ] Set up placeholder logos for each bank
-- [ ] Create `assets/images/banks/placeholder.png`
-- [ ] Add helper functions to get bank by name/id
-
-### 5.2 Bank Selector Component
-- [ ] Create `components/cards/BankSelector.tsx`
-- [ ] Implement dropdown/picker for bank selection
-- [ ] Display bank list with names
-- [ ] Display placeholder logos (if possible)
-- [ ] Allow custom bank entry (free text option)
-- [ ] Add dark theme styling
-
-### 5.3 Bank Logo on Card
-- [ ] Update CardItem to display bank logo
-- [ ] Position logo in top-right corner
-- [ ] Use placeholder logo for now
-- [ ] Handle custom banks (show placeholder)
-
-### 5.4 Update Add Card Form
-- [ ] Replace bank name text input with BankSelector
-- [ ] Integrate bank selection in form
-- [ ] Store bank name in card data
-
-**Review Checkpoint**: Can select bank from dropdown, and bank logo appears on card.
-
----
-
-## Feature 6: Card Colors
-
-**Goal**: Users can select custom colors for their cards.
-
-### 6.1 Card Color Constants
-- [ ] Define available card colors in `constants/theme.ts`
-- [ ] Define gradient options
-- [ ] Create color palette for selection
-
-### 6.2 Color Selector Component
-- [ ] Create `components/cards/ColorSelector.tsx`
-- [ ] Display available colors
-- [ ] Add gradient option
-- [ ] Allow user to select color
-- [ ] Preview selected color
-- [ ] Add dark theme styling
-
-### 6.3 Apply Colors to Cards
-- [ ] Update CardItem to use selected color
-- [ ] Apply gradient if gradient option selected
-- [ ] Store color preference in card data
-- [ ] Default to gradient if no color selected
-
-### 6.4 Update Add Card Form
-- [ ] Add ColorSelector to form
-- [ ] Make color selection optional
-- [ ] Save color preference with card
-
-**Review Checkpoint**: Can select card colors, and colors are applied to cards.
-
----
-
-## Feature 7: Search & Filter
-
-**Goal**: Users can search/filter cards by bank name.
-
-### 7.1 Search Bar Component
-- [ ] Create `components/ui/SearchBar.tsx`
-- [ ] Implement search input
-- [ ] Add search icon
-- [ ] Add clear button
-- [ ] Add debouncing for search
-- [ ] Add dark theme styling
-
-### 7.2 Filter Logic
-- [ ] Update `services/cards.service.ts`
-- [ ] Implement `filterCardsByBank(cards: Card[], bankName: string)`
-- [ ] Filter cards by bank name (case-insensitive)
-- [ ] Maintain sorting order (pinned first, then by usage)
-
-### 7.3 Integrate Search
-- [ ] Add SearchBar to main screen
-- [ ] Connect search input to filter logic
-- [ ] Update CardList to show filtered results
-- [ ] Clear search to show all cards
-- [ ] Maintain pinned cards at top when filtering
-
-**Review Checkpoint**: Can search cards by bank name, and filtered results maintain sorting order.
-
----
-
-## Feature 8: CVV Display Options & Validation
-
-**Goal**: Users can configure CVV display and form validation is improved.
-
-### 8.2 CVV Display Options
-- [ ] Update CardItem to support CVV display modes
-- [ ] Option 1: Always visible (default for now)
-- [ ] Option 2: Tap to reveal (for future settings)
-- [ ] Add tap handler for CVV reveal
-
-### 8.3 Validation Updates
-- [ ] Create `utils/validators.ts`
-- [ ] Implement `validateCVV()` - 3-4 digits, numeric
-- [ ] Implement `validateExpiryDate()` - MM/YY format
-- [ ] Implement `isExpired()` - Check if expired
-- [ ] Add validation to AddCardForm
-- [ ] Show inline error messages
-- [ ] Show toast for validation errors
-
-**Review Checkpoint**: CVV display is configurable and validation is improved.
-
----
-
-## Feature 9: Onboarding & Empty States
-
-**Goal**: First-time users see onboarding, and empty states are handled properly.
-
-### 9.1 Onboarding Screen
-- [ ] Create `app/onboarding.tsx`
-- [ ] Design onboarding UI
-- [ ] Add welcome message
-- [ ] Add feature highlights
-- [ ] Add "Get Started" button
-- [ ] Store onboarding completion in storage
-- [ ] Navigate to main screen after onboarding
-
-### 9.2 Empty State
-- [ ] Create empty state component
-- [ ] Show empty state when no cards
-- [ ] Add "Add Your First Card" button
-- [ ] Add helpful message
-- [ ] Style appropriately for dark theme
-
-### 9.3 Navigation Logic
-- [ ] Check if onboarding completed on app start
-- [ ] Show onboarding if first time
-- [ ] Show empty state if no cards (after onboarding)
-- [ ] Show card list if cards exist
-
-**Review Checkpoint**: First-time users see onboarding, and empty states are handled properly.
-
----
-
-## Feature 10: Polish & Animations
+## Feature 6: Polish & Animations
 
 **Goal**: App feels polished with smooth animations and refined UI.
 
-### 10.1 Animations
+### 6.1 Animations
 - [ ] Add card reveal animation (smooth transition)
 - [ ] Add card list animations (fade in, slide)
 - [ ] Add modal animations (slide up, fade)
@@ -342,7 +223,7 @@ This document organizes development by **independent features** that can be revi
 - [ ] Add copy feedback animations
 - [ ] Ensure animations are moderate (fast but modern)
 
-### 10.2 UI Polish
+### 6.2 UI Polish
 - [ ] Refine card design (spacing, shadows, borders)
 - [ ] Refine color schemes
 - [ ] Refine typography
@@ -351,7 +232,7 @@ This document organizes development by **independent features** that can be revi
 - [ ] Improve button styles
 - [ ] Improve input styles
 
-### 10.3 User Experience
+### 6.3 User Experience
 - [ ] Add loading states (when loading cards)
 - [ ] Add error states (storage errors, etc.)
 - [ ] Improve error messages
@@ -359,7 +240,7 @@ This document organizes development by **independent features** that can be revi
 - [ ] Improve user guidance
 - [ ] Add haptic feedback for important actions
 
-### 10.4 Accessibility
+### 6.4 Accessibility
 - [ ] Respect system font size settings
 - [ ] Ensure sufficient color contrast
 - [ ] Ensure touch targets are minimum 44x44 points
@@ -369,18 +250,18 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
-## Feature 11: Input Components & Form Improvements
+## Feature 7: Input Components & Form Improvements
 
 **Goal**: Reusable input components and improved form experience.
 
-### 11.1 Generic UI Components
+### 7.1 Generic UI Components
 - [ ] Create `components/ui/Button.tsx` (reusable button)
 - [ ] Create `components/ui/Input.tsx` (reusable input)
 - [ ] Create `components/ui/Modal.tsx` (reusable modal)
 - [ ] Add dark theme styling to all components
 - [ ] Make components accessible
 
-### 11.2 Form Improvements
+### 7.2 Form Improvements
 - [ ] Update AddCardForm to use new Input component
 - [ ] Improve form validation
 - [ ] Add better error handling
@@ -388,13 +269,13 @@ This document organizes development by **independent features** that can be revi
 - [ ] Add form field labels
 - [ ] Improve form submission flow
 
-### 11.3 Card Number Input
+### 7.3 Card Number Input
 - [ ] Improve card number input formatting
 - [ ] Add input masking
 - [ ] Handle backspace properly
 - [ ] Limit input to 16 digits
 
-### 11.4 Expiry Date Input
+### 7.4 Expiry Date Input
 - [ ] Improve expiry date input
 - [ ] Add input masking (MM/YY)
 - [ ] Validate expiry date format
@@ -405,34 +286,28 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
-## Feature 12: Final Testing & Bug Fixes
+## Feature 8: Final Testing & Bug Fixes
 
 **Goal**: App is thoroughly tested and all bugs are fixed.
 
-### 12.1 Functional Testing
+### 8.1 Functional Testing
 - [ ] Test add card flow
 - [ ] Test card display
 - [ ] Test card copy functionality
 - [ ] Test usage tracking
 - [ ] Test card sorting
 - [ ] Test card pinning
-- [ ] Test bank selection
-- [ ] Test color selection
 - [ ] Test search/filter
-- [ ] Test card number reveal
-- [ ] Test onboarding
-- [ ] Test empty states
 
-### 12.2 Edge Cases
+### 8.2 Edge Cases
 - [ ] Test with no cards
 - [ ] Test with many cards (50+)
-- [ ] Test with duplicate banks
 - [ ] Test with expired cards
 - [ ] Test with invalid data
 - [ ] Test storage errors
 - [ ] Test app restart (data persistence)
 
-### 12.3 Platform Testing
+### 8.3 Platform Testing
 - [ ] Test on iOS simulator
 - [ ] Test on Android emulator
 - [ ] Test on physical devices (if possible)
@@ -440,14 +315,14 @@ This document organizes development by **independent features** that can be revi
 - [ ] Test dark mode
 - [ ] Test system font sizes
 
-### 12.4 Bug Fixes
+### 8.4 Bug Fixes
 - [ ] Fix any discovered bugs
 - [ ] Fix performance issues
 - [ ] Fix UI/UX issues
 - [ ] Fix storage issues
 - [ ] Fix validation issues
 
-### 12.5 Code Quality
+### 8.5 Code Quality
 - [ ] Review code for best practices
 - [ ] Remove unused code
 - [ ] Add comments where needed
@@ -459,11 +334,11 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
-## Feature 13: Documentation & Finalization
+## Feature 9: Documentation & Finalization
 
 **Goal**: Code is documented, and app is ready for release.
 
-### 13.1 Code Documentation
+### 9.1 Code Documentation
 - [ ] Document complex functions
 - [ ] Document component props
 - [ ] Document service methods
@@ -471,12 +346,12 @@ This document organizes development by **independent features** that can be revi
 - [ ] Update README.md with setup instructions
 - [ ] Add code comments where needed
 
-### 13.2 User Documentation
+### 9.2 User Documentation
 - [ ] Document app features
 - [ ] Document how to use the app
 - [ ] Add help text in app (if needed)
 
-### 13.3 Final Checks
+### 9.3 Final Checks
 - [ ] Verify all requirements are met
 - [ ] Verify all acceptance criteria are met
 - [ ] Verify dark theme is consistent
@@ -485,7 +360,7 @@ This document organizes development by **independent features** that can be revi
 - [ ] Verify security is proper
 - [ ] Verify accessibility (system font size)
 
-### 13.4 App Store Preparation
+### 9.4 App Store Preparation
 - [ ] Prepare app icons
 - [ ] Prepare screenshots
 - [ ] Write app description
@@ -507,31 +382,23 @@ This document organizes development by **independent features** that can be revi
 - **Feature 1** must be completed first (foundation)
 - **Feature 2** depends on Feature 1
 - **Feature 3** depends on Feature 2
-- **Feature 4** depends on Feature 3
-- **Feature 5** can be done after Feature 1 or 2
-- **Feature 6** can be done after Feature 2
-- **Feature 7** depends on Feature 5
-- **Feature 8** depends on Feature 2
-- **Feature 9** can be done anytime after Feature 1
-- **Feature 10** should be done after core features
-- **Feature 11** can be done early or integrated with other features
-- **Feature 12** is done after all features
-- **Feature 13** is final step
+- **Feature 4** (Search & Filter) depends on Feature 3
+- **Feature 5** (Card Pinning) depends on Feature 3
+- **Feature 6** (Polish & Animations) should be done after core features
+- **Feature 7** (Input Components) can be done early or integrated with other features
+- **Feature 8** (Testing) is done after all features
+- **Feature 9** (Documentation) is final step
 
 ### Recommended Order
 1. Feature 1: Basic Setup & Add Card (MVP)
 2. Feature 2: Card UI Design & Display
 3. Feature 3: Copy Functionality & Usage Tracking
-4. Feature 4: Card Pinning
-5. Feature 5: Bank Selection & Logos
-6. Feature 6: Card Colors
-7. Feature 7: Search & Filter
-8. Feature 8: Card Number Reveal & CVV Display
-9. Feature 9: Onboarding & Empty States
-10. Feature 11: Input Components & Form Improvements (can be done earlier)
-11. Feature 10: Polish & Animations
-12. Feature 12: Final Testing & Bug Fixes
-13. Feature 13: Documentation & Finalization
+4. Feature 4: Search & Filter
+5. Feature 5: Card Pinning
+6. Feature 7: Input Components & Form Improvements (can be done earlier)
+7. Feature 6: Polish & Animations
+8. Feature 8: Final Testing & Bug Fixes
+9. Feature 9: Documentation & Finalization
 
 ---
 
@@ -541,7 +408,7 @@ This document organizes development by **independent features** that can be revi
 - After each feature, the app should be **functional** and **testable**
 - Course corrections can be made after any feature
 - Features build on each other, so order matters
-- Some features can be done in parallel (e.g., Feature 5 and 6)
+- Some features can be done in parallel
 - Testing should be done after each feature
 - Keep the app in a working state at all times
 
@@ -553,21 +420,17 @@ This document organizes development by **independent features** that can be revi
 - Feature 1: Basic Setup & Add Card
 - Feature 2: Card UI Design & Display
 - Feature 3: Copy Functionality & Usage Tracking
-- Feature 4: Card Pinning
+- Feature 5: Card Pinning
 
 ### Enhanced Features (Should Have)
-- Feature 5: Bank Selection & Logos
-- Feature 6: Card Colors
-- Feature 7: Search & Filter
-- Feature 8: Card Number Reveal & CVV Display
+- Feature 4: Search & Filter
 
 ### Polish Features (Nice to Have)
-- Feature 9: Onboarding & Empty States
-- Feature 10: Polish & Animations
-- Feature 11: Input Components & Form Improvements
-- Feature 12: Final Testing & Bug Fixes
-- Feature 13: Documentation & Finalization
+- Feature 6: Polish & Animations
+- Feature 7: Input Components & Form Improvements
+- Feature 8: Final Testing & Bug Fixes
+- Feature 9: Documentation & Finalization
 
 ---
 
-**Status**: ✅ Feature 2 complete — proceed to Feature 3 (Copy Functionality & Usage Tracking)
+**Status**: ✅ Feature 4 complete — proceed to Feature 5 (Card Pinning)

@@ -27,3 +27,23 @@ export async function getSortedCards(): Promise<Card[]> {
   // Combine pinned and sorted unpinned cards
   return [...pinnedCards, ...unpinnedCards];
 }
+
+/**
+ * Filters cards by a search query, checking bank name and cardholder name.
+ * The search is case-insensitive and matches if all query terms are found.
+ * @param cards An array of Card objects to filter.
+ * @param query The search query string.
+ * @returns A new array of Card objects that match the query.
+ */
+export function filterCards(cards: Card[], query: string): Card[] {
+  if (!query) {
+    return cards;
+  }
+
+  const searchTerms = query.toLowerCase().split(' ').filter(term => term);
+
+  return cards.filter(card => {
+    const cardInfo = `${card.bankName.toLowerCase()} ${card.cardholderName.toLowerCase()}`;
+    return searchTerms.every(term => cardInfo.includes(term));
+  });
+}

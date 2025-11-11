@@ -2,19 +2,20 @@
  * Main Cards List Screen
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Card } from '@/types/card.types';
 import { deleteCard, incrementUsage } from '@/services/storage.service';
-import { getSortedCards } from '@/services/cards.service';
+import { getSortedCards, filterCards } from '@/services/cards.service';
 import CardList from '@/components/cards/CardList';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useToast } from '@/components/ui/Toast';
 import * as Haptics from 'expo-haptics';
+import { SearchBar } from '@/components/ui/SearchBar';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function HomeScreen() {
   const { showToast } = useToast();
 
   const [cards, setCards] = useState<Card[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
   const loadCards = useCallback(async () => {
@@ -41,6 +43,10 @@ export default function HomeScreen() {
       loadCards();
     }, [loadCards])
   );
+
+  const filteredCards = useMemo(() => {
+    return filterCards(cards, searchQuery);
+  }, [cards, searchQuery]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -79,8 +85,9 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <SearchBar onSearch={setSearchQuery} />
       <CardList
-        cards={cards}
+        cards={filteredCards}
         onRefresh={handleRefresh}
         refreshing={refreshing}
         onDeleteCard={handleDeleteCard}
