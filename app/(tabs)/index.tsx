@@ -8,27 +8,32 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Card } from '@/types/card.types';
-import { getCards, deleteCard } from '@/services/storage.service';
+import { deleteCard, incrementUsage } from '@/services/storage.service';
+import { getSortedCards } from '@/services/cards.service';
 import CardList from '@/components/cards/CardList';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useToast } from '@/components/ui/Toast';
+import * as Haptics from 'expo-haptics';
 
 export default function HomeScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { showToast } = useToast();
 
   const [cards, setCards] = useState<Card[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadCards = useCallback(async () => {
     try {
-      const loadedCards = await getCards();
+      const loadedCards = await getSortedCards();
       setCards(loadedCards);
     } catch (error) {
       console.error('Error loading cards:', error);
+      showToast({ message: 'Failed to load cards.', type: 'error' });
     }
-  }, []);
+  }, [showToast]);
 
   // Load cards when screen comes into focus
   useFocusEffect(
@@ -51,8 +56,22 @@ export default function HomeScreen() {
     try {
       await deleteCard(id);
       await loadCards(); // Refresh the list
+      showToast({ message: 'Card deleted successfully!', type: 'success' });
     } catch (error) {
       console.error('Error deleting card:', error);
+      showToast({ message: 'Failed to delete card.', type: 'error' });
+    }
+  };
+
+  const handleCopyCard = async (id: string) => {
+    try {
+      await incrementUsage(id);
+      await loadCards(); // Refresh the list to reflect new usage count
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast({ message: 'Card number copied!', type: 'success' });
+    } catch (error) {
+      console.error('Error copying card:', error);
+      showToast({ message: 'Failed to copy card number.', type: 'error' });
     }
   };
 
@@ -65,6 +84,7 @@ export default function HomeScreen() {
         onRefresh={handleRefresh}
         refreshing={refreshing}
         onDeleteCard={handleDeleteCard}
+        onCopyCard={handleCopyCard}
       />
 
       <TouchableOpacity style={styles.fab} onPress={handleAddCard}>

@@ -62,10 +62,10 @@ This document organizes development by **independent features** that can be revi
 
 ## Feature 1.5: Delete Card
 
-**Goal**: Users can delete a card from the list.
+**Goal**: Users can delete a card from the list via a long-press context menu.
 
-### 1.5.1 Delete Button
-- [x] Add delete button to `CardItem.tsx`
+### 1.5.1 Delete Action
+- [x] Add delete action to a context menu on `CardItem.tsx` revealed by a long-press.
 - [x] Add confirmation dialog before deleting
 
 ### 1.5.2 Storage Service
@@ -121,36 +121,36 @@ This document organizes development by **independent features** that can be revi
 **Goal**: Users can copy card number, and usage is tracked for sorting.
 
 ### 3.1 Clipboard Utilities
-- [ ] Create `utils/clipboard.ts`
-- [ ] Implement `copyToClipboard()` using expo-clipboard
-- [ ] Implement `showCopyFeedback()` with toast + haptic
-- [ ] Copy card number without spaces (1234567890123456)
+- [x] Create `utils/clipboard.ts`
+- [x] Implement `copyToClipboard()` using expo-clipboard
+- [x] Implement `showCopyFeedback()` with toast + haptic
+- [x] Copy card number without spaces (1234567890123456)
 
 ### 3.2 Tap Card to Copy
-- [ ] Implement tap handler on CardItem to copy card number
-- [ ] Copy card number on tap
-- [ ] Show toast notification
-- [ ] Add haptic feedback
+- [x] Implement tap handler on CardItem to copy card number
+- [x] Copy card number on tap
+- [x] Show toast notification
+- [x] Add haptic feedback
 
 ### 3.3 Usage Tracking Service
-- [ ] Create `services/usage.service.ts`
-- [ ] Implement `incrementUsage(id: string)`
-- [ ] Update `usageCount` and `lastUsedAt` timestamp
-- [ ] Integrate with storage service
+- [x] Create `services/usage.service.ts`
+- [x] Implement `incrementUsage(id: string)`
+- [x] Update `usageCount` and `lastUsedAt` timestamp
+- [x] Integrate with storage service
 
 ### 3.4 Usage-Based Sorting
-- [ ] Update `services/cards.service.ts`
-- [ ] Implement sorting logic (by usageCount descending)
-- [ ] When usage counts equal, sort by lastUsedAt (most recent first)
-- [ ] Apply sorting in CardList component
-- [ ] Refresh list after copying
+- [x] Update `services/cards.service.ts`
+- [x] Implement sorting logic (by usageCount descending)
+- [x] When usage counts equal, sort by lastUsedAt (most recent first)
+- [x] Apply sorting in CardList component
+- [x] Refresh list after copying
 
 ### 3.5 Toast Component
-- [ ] Create `components/ui/Toast.tsx`
-- [ ] Implement toast notification
-- [ ] Add success variant
-- [ ] Add auto-dismiss functionality
-- [ ] Add dark theme styling
+- [x] Create `components/ui/Toast.tsx`
+- [x] Implement toast notification
+- [x] Add success variant
+- [x] Add auto-dismiss functionality
+- [x] Add dark theme styling
 
 **Review Checkpoint**: Can copy card number, see feedback, and cards are sorted by usage.
 
@@ -161,7 +161,7 @@ This document organizes development by **independent features** that can be revi
 **Goal**: Users can pin cards to keep them at the top.
 
 ### 4.1 Pin Toggle Functionality
-- [ ] Add pin/unpin toggle button to CardItem
+- [ ] Add pin/unpin toggle to the long-press context menu on CardItem.
 - [ ] Add visual indicator (pin icon) for pinned cards
 - [ ] Implement `togglePin(id: string)` in storage service
 - [ ] Update card's `isPinned` property

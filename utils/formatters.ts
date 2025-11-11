@@ -26,3 +26,11 @@ export const formatExpiryDate = (date: string): string => {
   // Return as is if already formatted or in a different format
   return date;
 };
+
+/**
+ * Removes spaces from a card number string.
+ * e.g., "1234 5678 9012 3456" -> "1234567890123456"
+ */
+export const removeSpacesFromCardNumber = (number: string): string => {
+  return number.replace(/\s/g, '');
+};
