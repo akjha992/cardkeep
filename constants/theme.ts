@@ -18,6 +18,7 @@ export const Colors = {
     tabIconSelected: tintColorLight,
     inputBackground: '#F0F0F0',
     inputBorder: '#E0E0E0',
+    destructive: '#FF3B30',
   },
   dark: {
     text: '#ECEDEE',
@@ -30,6 +31,7 @@ export const Colors = {
     cardBorder: '#2A2A2A',
     inputBackground: '#121212',
     inputBorder: '#2A2A2A',
+    destructive: '#FF453A',
   },
 };
 

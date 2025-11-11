@@ -1,12 +1,12 @@
 import { Colors, Fonts } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Card } from '@/types/card.types';
-import { formatCardNumber, formatExpiryDate, maskCardNumber, removeSpacesFromCardNumber } from '@/utils/formatters';
 import { copyToClipboard } from '@/utils/clipboard';
+import { formatExpiryDate, maskCardNumber, removeSpacesFromCardNumber } from '@/utils/formatters';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View, Alert, Pressable, Modal } from 'react-native';
+import { Alert, Dimensions, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Standard credit card ratio (85.60 × 53.98 mm)
 const CARD_ASPECT_RATIO = 1.586;
@@ -100,12 +100,20 @@ export default function CardItem({ card, onDelete, onCopy }: CardItemProps) {
         <Pressable style={styles.modalOverlay} onPress={() => setIsMenuVisible(false)}>
           <View style={styles.menuContainer}>
             <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
-              <Ionicons name="trash-outline" size={22} color={Colors.dark.text} />
-              <Text style={styles.menuText}>Delete</Text>
+              <Ionicons
+                name="trash-outline"
+                size={22}
+                color={isDark ? Colors.dark.destructive : Colors.light.destructive}
+              />
+              <Text style={[styles.menuText, styles.deleteMenuText]}>Delete</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
             <TouchableOpacity style={[styles.menuItem, styles.disabledMenuItem]} disabled>
-              <Ionicons name="pin-outline" size={22} color={Colors.dark.icon} />
+              <Ionicons
+                name="pin-outline"
+                size={22}
+                color={isDark ? Colors.dark.icon : Colors.light.icon}
+              />
               <Text style={[styles.menuText, styles.disabledMenuText]}>Pin</Text>
             </TouchableOpacity>
           </View>
@@ -225,6 +233,9 @@ const getStyles = (isDark: boolean) =>
       color: isDark ? Colors.dark.text : Colors.light.text,
       fontSize: 17,
       marginLeft: 16,
+    },
+    deleteMenuText: {
+      color: isDark ? Colors.dark.destructive : Colors.light.destructive,
     },
     disabledMenuText: {
       color: isDark ? Colors.dark.icon : Colors.light.icon,
