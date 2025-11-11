@@ -14,9 +14,15 @@ interface CardListProps {
   cards: Card[];
   onRefresh?: () => void;
   refreshing?: boolean;
+  onDeleteCard: (id: string) => void;
 }
 
-export default function CardList({ cards, onRefresh, refreshing = false }: CardListProps) {
+export default function CardList({
+  cards,
+  onRefresh,
+  refreshing = false,
+  onDeleteCard,
+}: CardListProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -34,7 +40,7 @@ export default function CardList({ cards, onRefresh, refreshing = false }: CardL
   return (
     <FlatList
       data={cards}
-      renderItem={({ item }) => <CardItem card={item} />}
+      renderItem={({ item }) => <CardItem card={item} onDelete={onDeleteCard} />}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.listContent}
       onRefresh={onRefresh}

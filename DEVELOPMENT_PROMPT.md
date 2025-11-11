@@ -15,7 +15,8 @@ Build CardVault, an offline mobile application for securely storing and managing
   - Card Type (Credit or Debit) - Required
   - Color (User-selectable) - Optional
 - **View Cards**: Display all cards in a vertical scrollable list with card-like UI
-- **Copy Details**: Copy card number to clipboard (V1 only - CVV and expiry in future)
+- **Delete Cards**: Users can delete cards they no longer need.
+- **Copy Details**: Tap card to copy card number to clipboard (V1 only - CVV and expiry in future)
 - **Usage Tracking**: Track how many times card number is copied (only card number copy counts)
 - **Smart Sorting**: Automatically sort cards by usage frequency (most used on top, then most recently used)
 - **Pin Cards**: Allow users to pin cards to fixed positions at top (excluded from frequency sorting)
@@ -24,7 +25,6 @@ Build CardVault, an offline mobile application for securely storing and managing
 ### 2. UI/UX Requirements
 - **Dark Theme**: Modern dark theme throughout the app
 - **Card Design**: Cards should visually resemble physical credit/debit cards (standard credit card dimensions)
-- **Bank Logos**: Display bank logo in top-right corner (placeholder logos for now)
 - **Card Colors**: User-selectable colors (with generic gradient option)
 - **Card Number Display**: Masked by default showing last 4 digits (**** **** **** 1234)
 - **Card Number Reveal**: Configurable (tap to toggle default, long press option)
@@ -73,7 +73,6 @@ cardkeep/
 │   └── usage.service.ts         # Usage tracking logic
 ├── types/                        # TypeScript type definitions
 │   ├── card.types.ts            # Card-related types (includes cardType, color)
-│   ├── bank.types.ts            # Bank-related types
 │   └── storage.types.ts         # Storage-related types
 ├── constants/                    # App constants
 │   ├── banks.ts                 # Bank list (HDFC, SBI, ICICI, AXIS) and logo mappings
@@ -82,10 +81,6 @@ cardkeep/
 │   ├── formatters.ts            # Card number formatting, etc.
 │   ├── validators.ts            # CVV and expiry validation (no Luhn for now)
 │   └── clipboard.ts             # Clipboard utilities
-└── assets/
-    └── images/
-        └── banks/               # Bank logo images (placeholder for now)
-            └── placeholder.png  # Placeholder logo
 ```
 
 ## Implementation Details
@@ -140,9 +135,8 @@ export interface Bank {
 // - Card-like UI with user-selectable colors (or gradient)
 // - Bank logo display in top-right corner (placeholder logos)
 // - Masked card number (show last 4 digits by default: **** **** **** 1234)
-// - Tap to reveal full card number (configurable: tap toggle or long press)
+// - Tap to copy card number
 // - CVV display (configurable: always visible or tap to reveal)
-// - Copy button for card number only (V1)
 // - Pin/unpin toggle
 // - Card type display (Credit/Debit)
 // - Dark theme styling
@@ -233,7 +227,6 @@ export const BANKS: Bank[] = [
 - Format as user types: "1234 5678 9012 3456"
 - No validation for now (user responsibility)
 - Mask by default, show last 4 digits: **** **** **** 1234
-- Tap to reveal full number (configurable: tap toggle default, long press option)
 - Copy without spaces: 1234567890123456
 
 ### 2. Usage Tracking
@@ -250,7 +243,7 @@ export const BANKS: Bank[] = [
 - Persist pin status in storage
 
 ### 4. Copy Functionality
-- Copy card number only (V1 - CVV and expiry in future)
+- Tap card to copy card number only (V1 - CVV and expiry in future)
 - Copy without spaces (1234567890123456 format for compatibility)
 - Show feedback (toast notification + haptic feedback)
 - Track usage on copy (only card number copy)
@@ -360,7 +353,6 @@ export const BANKS: Bank[] = [
 ## Future Enhancements (Out of Scope)
 
 - Edit card details
-- Delete cards
 - Card categories (beyond Credit/Debit type)
 - Export/import cards
 - App-level authentication
@@ -436,4 +428,3 @@ All questions have been answered. See `QUESTIONS.md` and `PROJECT_SUMMARY.md` fo
 ---
 
 **✅ Ready to start development - All questions answered, decisions made.**
-

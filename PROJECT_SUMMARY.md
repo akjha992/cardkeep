@@ -44,8 +44,6 @@ All questions have been answered. Key decisions:
 
 ### Banks & Logos
 4. **Bank List**: HDFC, SBI, ICICI, AXIS (Indian banks) - expandable later
-5. **Bank Logos**: Placeholder logos for now, directory structure ready for real logos
-6. **Logo Position**: Top-right corner of card
 
 ### Card Design
 7. **Card Colors**: User-selectable colors (with generic gradient option)
@@ -96,13 +94,13 @@ All questions have been answered. Key decisions:
 
 ### Core Features (V1)
 - Add credit/debit cards (with card type: Credit/Debit)
+- Delete credit/debit cards
 - View cards in card-like UI (user-selectable colors)
-- Copy card number to clipboard (only card number for now)
+- Tap card to copy card number to clipboard (only card number for now)
 - Track usage frequency (based on card number copy only)
 - Sort by usage (most used first, then most recently used)
 - Pin cards to fixed positions (always at top)
 - Search/filter cards by bank name
-- Configurable card number reveal (tap toggle or long press)
 - Configurable CVV display (always visible or tap to reveal)
 - Onboarding screen for first-time users
 - Dark theme with modern UI
@@ -131,7 +129,6 @@ cardkeep/
 │   └── usage.service.ts     # Usage tracking
 ├── types/                    # TypeScript types
 │   ├── card.types.ts        # Card model (includes cardType: Credit/Debit)
-│   └── bank.types.ts        # Bank types
 ├── constants/                # App constants
 │   ├── banks.ts             # Bank list (HDFC, SBI, ICICI, AXIS)
 │   └── theme.ts             # Dark theme colors
@@ -157,8 +154,6 @@ For questions or clarifications, refer to:
 
 ### Banks
 - Initial banks: HDFC, SBI, ICICI, AXIS
-- Placeholder logos for now
-- Directory structure: `assets/images/banks/` for future logo assets
 - Support for custom bank entry (free text)
 
 ### Card Model
@@ -187,4 +182,3 @@ interface Card {
 ---
 
 **Status**: ✅ **READY FOR DEVELOPMENT** - All questions answered, decisions made
-

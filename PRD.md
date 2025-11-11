@@ -29,7 +29,7 @@ CardVault is an offline mobile application designed to securely store and manage
 - **Add New Card**: Users can add multiple credit/debit cards
 - **View Cards**: Display all cards in a scrollable list
 - **Edit Card**: Modify existing card details (future consideration)
-- **Delete Card**: Remove cards from the vault (future consideration)
+- **Delete Card**: Remove cards from the vault
 
 #### 2.1.2 Card Information Fields
 Each card must store:
@@ -44,10 +44,8 @@ Each card must store:
 #### 2.1.3 Card Display UI
 - Cards should visually resemble physical credit/debit cards
 - Display card number (masked by default, showing last 4 digits: **** **** **** 1234)
-- Card number reveal: Configurable in settings (tap to toggle default, long press option)
 - CVV display: Configurable (always visible or tap to reveal)
 - Show expiry date, cardholder name, card type
-- Display bank logo based on selected bank (top-right corner)
 - User-selectable card colors (with generic gradient option)
 - Card design should be modern and aesthetically pleasing
 - Dark theme with card-specific styling
@@ -58,10 +56,6 @@ Each card must store:
 - Dropdown/picker for bank selection
 - Initial predefined banks: HDFC, SBI, ICICI, AXIS (Indian banks)
 - Support for custom bank entry (free text)
-- Bank logo automatically displayed on card based on selection
-- Placeholder logos for now (directory structure ready for future logo assets)
-- Logo assets stored locally in the app (`assets/images/banks/`)
-- Bank logo positioned in top-right corner of card
 
 #### 2.1.5 Usage Tracking & Sorting
 - Track usage frequency (number of times card number is copied)
@@ -73,7 +67,7 @@ Each card must store:
 - Search/filter cards by bank name
 
 #### 2.1.6 Copy Functionality
-- Copy card number to clipboard (V1 only - CVV and expiry copy in future)
+- Tap card to copy card number to clipboard (V1 only - CVV and expiry copy in future)
 - Card number copied without spaces (1234567890123456 format for compatibility)
 - Copy action is tracked for usage frequency calculation (only card number copy)
 - User receives feedback when data is copied (toast notification + haptic feedback)
@@ -158,7 +152,6 @@ interface Card {
 - `expo-haptics` for haptic feedback (already included)
 - `react-native-reanimated` for animations (already included)
 - `uuid` for generating unique card IDs
-- Image assets for bank logos (placeholder logos for now)
 
 ### 3.3 Code Structure
 - **Modular Architecture**: Organize code into modules
@@ -221,7 +214,6 @@ cardkeep/
 
 ### 4.3 Bank Selection
 7. **As a user**, I want to select my bank from a dropdown so that the correct logo appears on my card
-8. **As a user**, I want to see my bank's logo on the card so that it looks authentic
 
 ---
 
@@ -245,9 +237,7 @@ cardkeep/
 ### 5.2 Card Display
 - [ ] Cards are displayed in a vertical scrollable list (one card per row)
 - [ ] Each card looks like a physical credit card (standard credit card dimensions)
-- [ ] Bank logo is displayed in top-right corner (placeholder logos for now)
 - [ ] Card number is masked by default showing last 4 digits (**** **** **** 1234)
-- [ ] Card number can be revealed (tap to toggle by default, configurable)
 - [ ] CVV display is configurable (always visible or tap to reveal)
 - [ ] Card shows expiry date, cardholder name, card type
 - [ ] User-selected card colors are applied
@@ -268,7 +258,7 @@ cardkeep/
 - [ ] Pinned cards maintain position regardless of usage
 
 ### 5.5 Copy Functionality
-- [ ] User can copy card number to clipboard (V1 only)
+- [ ] User can tap card to copy card number to clipboard (V1 only)
 - [ ] Card number is copied without spaces (1234567890123456 format)
 - [ ] Copy action is tracked for usage frequency (only card number copy)
 - [ ] User receives feedback when data is copied (toast notification + haptic feedback)
@@ -309,7 +299,6 @@ cardkeep/
 
 ### 7.1 Features
 - Edit card details
-- Delete cards
 - Card categories (beyond Credit/Debit type)
 - Export/import cards
 - App-level authentication (PIN/password)
@@ -414,8 +403,6 @@ All questions have been answered. See `QUESTIONS.md` for detailed decisions. Key
 
 ### Banks & Logos
 - Initial banks: HDFC, SBI, ICICI, AXIS (Indian banks)
-- Placeholder logos for now, directory structure ready for future assets
-- Logo position: Top-right corner
 
 ### Card Design
 - User-selectable colors (with generic gradient option)
@@ -437,4 +424,3 @@ All questions have been answered. See `QUESTIONS.md` for detailed decisions. Key
 - expo-secure-store (local only, no network transfer)
 - Card type (Credit/Debit) required in model
 - Search/filter by bank name
-

@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Card } from '@/types/card.types';
-import { getCards } from '@/services/storage.service';
+import { getCards, deleteCard } from '@/services/storage.service';
 import CardList from '@/components/cards/CardList';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -47,11 +47,25 @@ export default function HomeScreen() {
     router.push('/add-card');
   };
 
+  const handleDeleteCard = async (id: string) => {
+    try {
+      await deleteCard(id);
+      await loadCards(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting card:', error);
+    }
+  };
+
   const styles = getStyles(isDark);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <CardList cards={cards} onRefresh={handleRefresh} refreshing={refreshing} />
+      <CardList
+        cards={cards}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+        onDeleteCard={handleDeleteCard}
+      />
 
       <TouchableOpacity style={styles.fab} onPress={handleAddCard}>
         <Text style={styles.fabText}>+</Text>

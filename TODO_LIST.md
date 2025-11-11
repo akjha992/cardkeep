@@ -116,7 +116,7 @@ This document breaks down the development work into small, manageable tasks that
 - [ ] Implement `saveCard(card: Card): Promise<void>` - Save card to secure store
 - [ ] Implement `getCards(): Promise<Card[]>` - Get all cards
 - [ ] Implement `updateCard(id: string, updates: Partial<Card>): Promise<void>` - Update card
-- [ ] Implement `deleteCard(id: string): Promise<void>` - Delete card (for future)
+- [ ] Implement `deleteCard(id: string): Promise<void>` - Delete card
 - [ ] Implement `incrementUsage(id: string): Promise<void>` - Increment usage count
 - [ ] Implement `togglePin(id: string): Promise<void>` - Toggle pin status
 - [ ] Handle storage errors appropriately
@@ -208,12 +208,11 @@ This document breaks down the development work into small, manageable tasks that
 - [ ] Implement card-like UI with standard credit card dimensions
 - [ ] Display bank logo in top-right corner
 - [ ] Display masked card number (last 4 digits visible)
-- [ ] Implement tap to reveal full card number
+- [ ] Implement tap to copy card number
 - [ ] Display cardholder name
 - [ ] Display expiry date
 - [ ] Display card type (Credit/Debit)
 - [ ] Display CVV (configurable: always visible or tap to reveal)
-- [ ] Add copy button for card number
 - [ ] Add pin/unpin toggle button
 - [ ] Apply user-selected color or gradient
 - [ ] Add dark theme styling

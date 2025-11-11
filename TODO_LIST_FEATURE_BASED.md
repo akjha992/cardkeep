@@ -9,54 +9,73 @@ This document organizes development by **independent features** that can be revi
 **Goal**: Users can add a card and see it in a list. Basic functionality only.
 
 ### 1.1 Project Setup
-- [ ] Install dependencies (`expo-secure-store`, `expo-clipboard`, `uuid`)
-- [ ] Update `app.json` (app name: "CardVault")
-- [ ] Create directory structure (`services/`, `types/`, `utils/`, `components/`)
-- [ ] Update theme for dark mode in `constants/theme.ts`
+- [x] Install dependencies (`expo-secure-store`, `expo-clipboard`, `uuid`)
+- [x] Update `app.json` (app name: "CardVault")
+- [x] Create directory structure (`services/`, `types/`, `utils/`, `components/`)
+- [x] Update theme for dark mode in `constants/theme.ts`
 
 ### 1.2 Type Definitions
-- [ ] Create `types/card.types.ts` with `Card` interface (all fields)
-- [ ] Create `types/bank.types.ts` with `Bank` interface
+- [x] Create `types/card.types.ts` with `Card` interface (all fields)
+- [x] Create `types/bank.types.ts` with `Bank` interface
 
 ### 1.3 Storage Service
-- [ ] Create `services/storage.service.ts`
-- [ ] Implement `saveCard(card: Card): Promise<void>`
-- [ ] Implement `getCards(): Promise<Card[]>()`
-- [ ] Use `expo-secure-store` for sensitive data
-- [ ] Handle storage errors
+- [x] Create `services/storage.service.ts`
+- [x] Implement `saveCard(card: Card): Promise<void>`
+- [x] Implement `getCards(): Promise<Card[]>()`
+- [x] Use `expo-secure-store` for sensitive data
+- [x] Handle storage errors
 
 ### 1.4 Basic Add Card Form
-- [ ] Create `components/cards/AddCardForm.tsx`
-- [ ] Add card number input (basic, no formatting yet)
-- [ ] Add CVV input
-- [ ] Add expiry date input (MM/YY)
-- [ ] Add bank name input (text input for now)
-- [ ] Add cardholder name input
-- [ ] Add card type selector (Credit/Debit) - Required
-- [ ] Add submit button
-- [ ] Basic validation (CVV, expiry)
-- [ ] Save card to storage on submit
+- [x] Create `components/cards/AddCardForm.tsx`
+- [x] Add card number input (basic, no formatting yet)
+- [x] Add CVV input
+- [x] Add expiry date input (MM/YY)
+- [x] Add bank name input (text input for now)
+- [x] Add cardholder name input
+- [x] Add card type selector (Credit/Debit) - Required
+- [x] Add submit button
+- [x] Basic validation (CVV, expiry)
+- [x] Save card to storage on submit
 
 ### 1.5 Basic Card List
-- [ ] Create `components/cards/CardList.tsx`
-- [ ] Display cards in FlatList
-- [ ] Create basic `CardItem.tsx` (simple card display)
-- [ ] Show cardholder name, bank name, card type
-- [ ] Load cards from storage on mount
+- [x] Create `components/cards/CardList.tsx`
+- [x] Display cards in FlatList
+- [x] Create basic `CardItem.tsx` (simple card display)
+- [x] Show cardholder name, bank name, card type
+- [x] Load cards from storage on mount
 
 ### 1.6 Main Screen
-- [ ] Update `app/(tabs)/index.tsx`
-- [ ] Integrate CardList component
-- [ ] Add "Add Card" button
-- [ ] Create `app/add-card.tsx` modal
-- [ ] Navigate to add card modal
-- [ ] Refresh list after adding card
+- [x] Update `app/(tabs)/index.tsx`
+- [x] Integrate CardList component
+- [x] Add "Add Card" button
+- [x] Create `app/add-card.tsx` modal
+- [x] Navigate to add card modal
+- [x] Refresh list after adding card
 
 ### 1.7 Navigation
-- [ ] Update `app/_layout.tsx` for modal presentation
-- [ ] Configure navigation stack
+- [x] Update `app/_layout.tsx` for modal presentation
+- [x] Configure navigation stack
 
 **Review Checkpoint**: Can add a card and see it in a list. Basic functionality works.
+
+---
+
+## Feature 1.5: Delete Card
+
+**Goal**: Users can delete a card from the list.
+
+### 1.5.1 Delete Button
+- [x] Add delete button to `CardItem.tsx`
+- [x] Add confirmation dialog before deleting
+
+### 1.5.2 Storage Service
+- [x] Implement `deleteCard(id: string): Promise<void>` in `services/storage.service.ts`
+- [x] Remove card from storage
+
+### 1.5.3 Main Screen
+- [x] Refresh card list after deleting a card
+
+**Review Checkpoint**: Can delete a card, and it is removed from the list.
 
 ---
 
@@ -65,35 +84,35 @@ This document organizes development by **independent features** that can be revi
 **Goal**: Cards look like actual credit cards with proper styling and display all information.
 
 ### 2.1 Card Styling
-- [ ] Update `CardItem.tsx` with card-like UI
-- [ ] Apply standard credit card dimensions (85.60 × 53.98 mm ratio)
-- [ ] Add dark theme styling
-- [ ] Add gradient background (default)
-- [ ] Add shadows and borders
-- [ ] Make it visually appealing
+- [x] Update `CardItem.tsx` with card-like UI
+- [x] Apply standard credit card dimensions (85.60 × 53.98 mm ratio)
+- [x] Add dark theme styling
+- [x] Add gradient background (default)
+- [x] Add shadows and borders
+- [x] Make it visually appealing
 
 ### 2.2 Card Information Display
-- [ ] Display card number (masked: **** **** **** 1234)
-- [ ] Display cardholder name prominently
-- [ ] Display expiry date (MM/YY format)
-- [ ] Display CVV (always visible for now)
-- [ ] Display card type (Credit/Debit)
-- [ ] Display bank name
-- [ ] Use proper typography (monospace for card number)
+- [x] Display card number (masked: **** **** **** 1234)
+- [x] Display cardholder name prominently
+- [x] Display expiry date (MM/YY format)
+- [x] Display CVV (always visible for now)
+- [x] Display card type (Credit/Debit)
+- [x] Display bank name
+- [x] Use proper typography (monospace for card number)
 
 ### 2.3 Formatters
-- [ ] Create `utils/formatters.ts`
-- [ ] Implement `formatCardNumber()` - Format as XXXX XXXX XXXX XXXX
-- [ ] Implement `maskCardNumber()` - Mask with last 4 digits visible
-- [ ] Implement `formatExpiryDate()` - Format as MM/YY
-- [ ] Apply formatting in CardItem component
+- [x] Create `utils/formatters.ts`
+- [x] Implement `formatCardNumber()` - Format as XXXX XXXX XXXX XXXX
+- [x] Implement `maskCardNumber()` - Mask with last 4 digits visible
+- [x] Implement `formatExpiryDate()` - Format as MM/YY
+- [x] Apply formatting in CardItem component
 
 ### 2.4 Card Number Input Formatting
 - [ ] Update AddCardForm to format card number as user types
 - [ ] Auto-format to XXXX XXXX XXXX XXXX format
 - [ ] Limit to 16 digits
 
-**Review Checkpoint**: Cards look like actual credit cards with all information displayed properly.
+**Review Checkpoint**: ✅ Cards look like actual credit cards with all information displayed properly.
 
 ---
 
@@ -107,9 +126,9 @@ This document organizes development by **independent features** that can be revi
 - [ ] Implement `showCopyFeedback()` with toast + haptic
 - [ ] Copy card number without spaces (1234567890123456)
 
-### 3.2 Copy Button on Card
-- [ ] Add copy button to CardItem
-- [ ] Copy card number on button press
+### 3.2 Tap Card to Copy
+- [ ] Implement tap handler on CardItem to copy card number
+- [ ] Copy card number on tap
 - [ ] Show toast notification
 - [ ] Add haptic feedback
 
@@ -258,16 +277,9 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
-## Feature 8: Card Number Reveal & CVV Display Options
+## Feature 8: CVV Display Options & Validation
 
-**Goal**: Users can reveal card number and configure CVV display.
-
-### 8.1 Card Number Reveal
-- [ ] Update CardItem to support tap to reveal
-- [ ] Implement toggle to show/hide full card number
-- [ ] Default: masked (last 4 digits visible)
-- [ ] Tap card to reveal full number
-- [ ] Add smooth animation for reveal
+**Goal**: Users can configure CVV display and form validation is improved.
 
 ### 8.2 CVV Display Options
 - [ ] Update CardItem to support CVV display modes
@@ -284,7 +296,7 @@ This document organizes development by **independent features** that can be revi
 - [ ] Show inline error messages
 - [ ] Show toast for validation errors
 
-**Review Checkpoint**: Can reveal card number by tapping, and CVV display is configurable.
+**Review Checkpoint**: CVV display is configurable and validation is improved.
 
 ---
 
@@ -558,5 +570,4 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
-**Status**: 📋 Ready for Development - Start with Feature 1 (MVP)
-
+**Status**: ✅ Feature 2 complete — proceed to Feature 3 (Copy Functionality & Usage Tracking)

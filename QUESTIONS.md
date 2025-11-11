@@ -37,16 +37,14 @@ This document outlines questions and decisions needed before development begins.
   - Option C: Allow custom bank entry (free text)
 - **Recommendation**: Option A (major banks) with Option C (custom entry) for flexibility
 - **Action Required**: 
-  - For now lets keep a few example ones (HDFC, SBI, ICICI, AXIS). Will update later. Keep directory structure where i can put their logos which can be imported later. For now we can have mock logo.
+  - For now lets keep a few example ones (HDFC, SBI, ICICI, AXIS).
 
 ### Q2.2: Bank Logo Sources
 - **Question**: Where should bank logos come from?
   - Option A: Pre-downloaded assets in app bundle
   - Option B: CDN/API (requires internet, but out of scope for offline app)
-  - Option C: Placeholder/default logo for unknown banks
-- **Recommendation**: Option A (pre-downloaded assets) + Option C (placeholder)
-- **Action Required**:  Option A for future, Option C for now
-  - I will add the logos later, for now use a placeholder
+- **Recommendation**: Option A (pre-downloaded assets) for the future.
+- **Action Required**:  Not applicable for this version as logos are out of scope.
 
 ### Q2.3: Bank Logo Display
 - **Question**: Where should bank logo appear on the card?
@@ -55,7 +53,7 @@ This document outlines questions and decisions needed before development begins.
   - Option C: Center
   - Option D: User-configurable position
 - **Recommendation**: Option A (top-right) - standard credit card design
-- **Action Required**: Option A
+- **Action Required**: Not applicable for this version as logos are out of scope.
 
 ## 3. Card Design & Styling
 
@@ -254,14 +252,6 @@ This document outlines questions and decisions needed before development begins.
 - **Recommendation**: Option A (FlatList) - React Native best practice
 - **Action Required**: Option C, search using bank name
 
-### Q11.2: Image Loading
-- **Question**: How should bank logos be loaded?
-  - Option A: All logos loaded at app start
-  - Option B: Lazy load as needed
-  - Option C: Cache after first load
-- **Recommendation**: Option C (cache after first load) - best performance
-- **Action Required**: Option C
-
 ## 12. Accessibility
 
 ### Q12.1: Screen Reader Support
@@ -283,7 +273,7 @@ This document outlines questions and decisions needed before development begins.
 
 ### High Priority (Block Development)
 1. Card number masking strategy (Q1.1)
-2. Bank list and logo sources (Q2.1, Q2.2)
+2. Bank list (Q2.1)
 3. Storage solution (Q8.1)
 4. Card design colors (Q3.1)
 5. Usage tracking definition (Q4.1)
@@ -307,4 +297,3 @@ This document outlines questions and decisions needed before development begins.
 3. Provide bank list and logo assets (if available)
 4. Approve PRD and development prompt
 5. Begin development once all high-priority questions are answered
-
