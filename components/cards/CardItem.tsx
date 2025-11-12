@@ -18,9 +18,10 @@ interface CardItemProps {
   card: Card;
   onDelete: (id: string) => void;
   onCopy: (id: string) => void;
+  onTogglePin: (id: string) => void;
 }
 
-export default function CardItem({ card, onDelete, onCopy }: CardItemProps) {
+export default function CardItem({ card, onDelete, onCopy, onTogglePin }: CardItemProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -44,6 +45,11 @@ export default function CardItem({ card, onDelete, onCopy }: CardItemProps) {
     );
   };
 
+  const handleTogglePin = () => {
+    setIsMenuVisible(false);
+    onTogglePin(card.id);
+  };
+
   const handleLongPress = () => {
     setIsMenuVisible(true);
   };
@@ -60,6 +66,15 @@ export default function CardItem({ card, onDelete, onCopy }: CardItemProps) {
         delayLongPress={200}
       >
         <LinearGradient colors={cardColors} style={styles.card}>
+          {card.isPinned && (
+            <View style={styles.pinIconAbsolute}>
+              <Ionicons
+                name="pin"
+                size={20}
+                color={Colors.dark.icon}
+              />
+            </View>
+          )}
           <View style={styles.cardHeader}>
             <Text style={styles.bankName}>{card.bankName.toUpperCase()}</Text>
           </View>
@@ -108,13 +123,13 @@ export default function CardItem({ card, onDelete, onCopy }: CardItemProps) {
               <Text style={[styles.menuText, styles.deleteMenuText]}>Delete</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
-            <TouchableOpacity style={[styles.menuItem, styles.disabledMenuItem]} disabled>
+            <TouchableOpacity style={styles.menuItem} onPress={handleTogglePin}>
               <Ionicons
-                name="pin-outline"
+                name={card.isPinned ? "pin" : "pin-outline"}
                 size={22}
                 color={isDark ? Colors.dark.icon : Colors.light.icon}
               />
-              <Text style={[styles.menuText, styles.disabledMenuText]}>Pin</Text>
+              <Text style={styles.menuText}>{card.isPinned ? "Unpin" : "Pin"}</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -244,5 +259,11 @@ const getStyles = (isDark: boolean) =>
       height: 1,
       backgroundColor: isDark ? '#3A3A3C' : '#E5E5EA',
       marginHorizontal: 16,
+    },
+    pinIconAbsolute: {
+      position: 'absolute',
+      top: 10,
+      right: 5,
+      zIndex: 1,
     },
   });

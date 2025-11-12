@@ -190,24 +190,24 @@ This document organizes development by **independent features** that can be revi
 **Goal**: Users can pin cards to keep them at the top.
 
 ### 5.1 Pin Toggle Functionality
-- [ ] Add pin/unpin toggle to the long-press context menu on CardItem.
-- [ ] Add visual indicator (pin icon) for pinned cards
-- [ ] Implement `togglePin(id: string)` in storage service
-- [ ] Update card's `isPinned` property
+- [x] Add pin/unpin toggle to the long-press context menu on CardItem.
+- [x] Add visual indicator (pin icon) for pinned cards
+- [x] Implement `togglePin(id: string)` in storage service
+- [x] Update card's `isPinned` property
 
 ### 5.2 Pinned Cards Sorting
-- [ ] Update sorting logic in cards service
-- [ ] Pinned cards always appear at top
-- [ ] Pinned cards excluded from usage-based sorting
-- [ ] Unpinned cards sorted by usage (as before)
-- [ ] Maintain pin status across app restarts
+- [x] Update sorting logic in cards service
+- [x] Pinned cards always appear at top
+- [x] Pinned cards excluded from usage-based sorting
+- [x] Unpinned cards sorted by usage (as before)
+- [x] Maintain pin status across app restarts
 
 ### 5.3 UI Updates
-- [ ] Style pin button appropriately
-- [ ] Show pinned indicator clearly
-- [ ] Add visual separation between pinned and unpinned cards (optional)
+- [x] Style pin button appropriately
+- [x] Show pinned indicator clearly
+- [x] Add visual separation between pinned and unpinned cards (optional)
 
-**Review Checkpoint**: Can pin/unpin cards, and pinned cards stay at the top regardless of usage.
+**Review Checkpoint**: ✅ Can pin/unpin cards, and pinned cards stay at the top regardless of usage.
 
 ---
 
@@ -489,4 +489,4 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
-**Status**: ✅ Feature 4 complete — proceed to Feature 5 (Card Pinning)
+**Status**: ✅ Feature 5 complete — proceed to Feature 6 (Data Import & Export)

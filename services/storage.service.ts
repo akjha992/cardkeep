@@ -102,7 +102,7 @@ export async function incrementUsage(id: string): Promise<void> {
     console.error('Error incrementing usage:', error);
     throw new Error('Failed to update usage. Please try again.');
   }
-}
+} // Added closing curly brace for incrementUsage
 
 /**
  * Toggle pin status for a card

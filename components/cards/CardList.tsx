@@ -16,6 +16,7 @@ interface CardListProps {
   refreshing?: boolean;
   onDeleteCard: (id: string) => void;
   onCopyCard: (id: string) => void;
+  onTogglePinCard: (id: string) => void;
 }
 
 export default function CardList({
@@ -24,6 +25,7 @@ export default function CardList({
   refreshing = false,
   onDeleteCard,
   onCopyCard,
+  onTogglePinCard,
 }: CardListProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -43,7 +45,12 @@ export default function CardList({
     <FlatList
       data={cards}
       renderItem={({ item }) => (
-        <CardItem card={item} onDelete={onDeleteCard} onCopy={onCopyCard} />
+        <CardItem
+          card={item}
+          onDelete={onDeleteCard}
+          onCopy={onCopyCard}
+          onTogglePin={onTogglePinCard}
+        />
       )}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.listContent}

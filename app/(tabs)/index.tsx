@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Card } from '@/types/card.types';
-import { deleteCard, incrementUsage } from '@/services/storage.service';
+import { deleteCard, incrementUsage, togglePin } from '@/services/storage.service';
 import { getSortedCards, filterCards } from '@/services/cards.service';
 import CardList from '@/components/cards/CardList';
 import { Colors } from '@/constants/theme';
@@ -81,6 +81,17 @@ export default function HomeScreen() {
     }
   };
 
+  const handleTogglePinCard = async (id: string) => {
+    try {
+      await togglePin(id);
+      await loadCards(); // Refresh the list to reflect new pin status
+      showToast({ message: 'Card pin status updated!', type: 'success' });
+    } catch (error) {
+      console.error('Error toggling pin:', error);
+      showToast({ message: 'Failed to update card pin status.', type: 'error' });
+    }
+  };
+
   const styles = getStyles(isDark);
 
   return (
@@ -92,6 +103,7 @@ export default function HomeScreen() {
         refreshing={refreshing}
         onDeleteCard={handleDeleteCard}
         onCopyCard={handleCopyCard}
+        onTogglePinCard={handleTogglePinCard}
       />
 
       <TouchableOpacity style={styles.fab} onPress={handleAddCard}>

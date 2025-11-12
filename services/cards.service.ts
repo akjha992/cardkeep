@@ -14,6 +14,9 @@ export async function getSortedCards(): Promise<Card[]> {
   const pinnedCards = allCards.filter(card => card.isPinned);
   const unpinnedCards = allCards.filter(card => !card.isPinned);
 
+  // Sort pinned cards: by lastUsedAt (most recent first)
+  pinnedCards.sort((a, b) => b.lastUsedAt - a.lastUsedAt);
+
   // Sort unpinned cards:
   // 1. By usageCount (descending)
   // 2. Then by lastUsedAt (most recent first)
