@@ -277,6 +277,7 @@ This document outlines questions and decisions needed before development begins.
 3. Storage solution (Q8.1)
 4. Card design colors (Q3.1)
 5. Usage tracking definition (Q4.1)
+6. Data Import/Export strategy (Q13.1 - Q13.7)
 
 ### Medium Priority (Affect UX)
 1. Copy functionality options (Q5.1)
@@ -297,3 +298,40 @@ This document outlines questions and decisions needed before development begins.
 3. Provide bank list and logo assets (if available)
 4. Approve PRD and development prompt
 5. Begin development once all high-priority questions are answered
+
+## 13. Data Import/Export
+
+### Q13.1: Export File Format
+- **Question**: What file format should be used for the exported encrypted file (e.g., JSON, CSV)?
+- **Recommendation**: JSON is recommended as it is structured and easy to parse.
+- **Action Required**: JSON
+
+### Q13.2: Encryption Standard
+- **Question**: What encryption standard should be implemented (e.g., AES-256)?
+- **Recommendation**: AES-256 is a strong and widely used encryption standard.
+- **Action Required**: AES-256
+
+### Q13.3: Import Conflict Resolution
+- **Question**: How should the app handle import conflicts? For instance, if a card in the import file already exists in the app's database (e.g., same card number), should the existing card's data be overwritten, or should the new data be merged with it? If merging, what are the specific rules for merging fields?
+- **Recommendation**: A clear strategy is needed. For example, we could skip duplicates, overwrite them, or attempt to merge fields. Merging can be complex. A simple approach would be to skip importing duplicate cards and notify the user.
+- **Action Required**: Skip importing duplicate cards and notify the user. This can be simple bulk notification like "3 cards were found duplicates and were not imported".
+
+### Q13.4: Export Password
+- **Question**: How will the user be prompted to set a password for the export? Will this password be stored in the app for future exports, or will the user need to set it every time?
+- **Recommendation**: For security, the user should be prompted to enter a password for each export. We should not store the export password.
+- **Action Required**: Every time.
+
+### Q13.5: Password Requirements
+- **Question**: Are there any specific requirements for the password, such as minimum length or character complexity?
+- **Recommendation**: We should enforce a minimum password length (e.g., 8 characters) to encourage stronger passwords.
+- **Action Required**: No enforcement for now.
+
+### Q13.6: Export Location
+- **Question**: Where should the exported file be saved on the user's device?
+- **Recommendation**: The app should use the system's file picker to allow the user to choose the location to save the file.
+- **Action Required**: The app should use the system's file picker to allow the user to choose the location to save the file.
+
+### Q13.7: File Integrity
+- **Question**: How should the app verify the integrity of the imported file to ensure it hasn't been corrupted or tampered with?
+- **Recommendation**: We can include a checksum or hash (e.g., SHA-256) of the data within the encrypted file. During import, we can recalculate the hash and compare it to the stored one.
+- **Action Required**: Go with the recommendation.

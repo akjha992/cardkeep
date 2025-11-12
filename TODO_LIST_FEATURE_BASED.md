@@ -211,11 +211,62 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
-## Feature 6: Polish & Animations
+## Feature 6: Data Import & Export
+
+**Goal**: Users can export their card data to an encrypted file and import it back.
+
+### 6.0 Refactor Explore Tab to Settings Tab
+- [ ] Rename `app/(tabs)/explore.tsx` to `app/(tabs)/settings.tsx`.
+- [ ] Update `app/(tabs)/_layout.tsx` to replace the 'Explore' tab with a 'Settings' tab, including updating the name and icon.
+- [ ] Clear the existing content of the new `app/(tabs)/settings.tsx` file to prepare it for the settings UI.
+
+### 6.1 UI for Settings
+- [ ] Build the basic UI for the settings screen in `app/(tabs)/settings.tsx`.
+- [ ] Add pressable list items for "Import Data" and "Export Data".
+
+### 6.2 Crypto Utilities
+- [ ] Create `utils/crypto.ts` for encryption/decryption and hashing.
+- [ ] Implement `encrypt(data: string, key: string): Promise<string>` using AES-256.
+- [ ] Implement `decrypt(encryptedData: string, key: string): Promise<string>`.
+- [ ] Implement `generateHash(data: string): Promise<string>` using SHA-256.
+- [ ] Choose and install a crypto library (e.g., `expo-crypto` or a pure JS one).
+
+### 6.3 Export Flow
+- [ ] Connect the "Export Data" button to the export workflow.
+- [ ] Create a modal to prompt the user for an export password.
+- [ ] On confirmation:
+    - [ ] Fetch all cards from storage.
+    - [ ] Create a JSON object containing the cards and a SHA-256 hash of the card data.
+    - [ ] Encrypt the JSON object using AES-256 with the user's password.
+    - [ ] Use `expo-document-picker` or similar to let the user save the encrypted file as `cardvault-export.json`.
+- [ ] Show a success toast message after export.
+
+### 6.4 Import Flow
+- [ ] Connect the "Import Data" button to the import workflow.
+- [ ] Use `expo-document-picker` for the user to select an import file.
+- [ ] After file selection, prompt the user for the password.
+- [ ] On confirmation:
+    - [ ] Read the selected file.
+    - [ ] Decrypt the content with the provided password.
+    - [ ] Parse the decrypted JSON.
+    - [ ] Verify the hash to ensure data integrity.
+    - [ ] If hash is invalid, show an error and stop.
+    - [ ] Iterate through imported cards:
+        - [ ] Check for duplicates based on card number.
+        - [ ] Add new cards to storage.
+        - [ ] Keep track of imported and skipped (duplicate) cards.
+- [ ] Show a summary notification (e.g., "5 cards imported, 3 duplicates skipped.").
+- [ ] Refresh the card list to show the newly imported cards.
+
+**Review Checkpoint**: User can successfully export all card data to a password-protected file and import it on another device or after re-installation. Duplicates are handled correctly.
+
+---
+
+## Feature 7: Polish & Animations
 
 **Goal**: App feels polished with smooth animations and refined UI.
 
-### 6.1 Animations
+### 7.1 Animations
 - [ ] Add card reveal animation (smooth transition)
 - [ ] Add card list animations (fade in, slide)
 - [ ] Add modal animations (slide up, fade)
@@ -223,7 +274,7 @@ This document organizes development by **independent features** that can be revi
 - [ ] Add copy feedback animations
 - [ ] Ensure animations are moderate (fast but modern)
 
-### 6.2 UI Polish
+### 7.2 UI Polish
 - [ ] Refine card design (spacing, shadows, borders)
 - [ ] Refine color schemes
 - [ ] Refine typography
@@ -232,7 +283,7 @@ This document organizes development by **independent features** that can be revi
 - [ ] Improve button styles
 - [ ] Improve input styles
 
-### 6.3 User Experience
+### 7.3 User Experience
 - [ ] Add loading states (when loading cards)
 - [ ] Add error states (storage errors, etc.)
 - [ ] Improve error messages
@@ -240,7 +291,7 @@ This document organizes development by **independent features** that can be revi
 - [ ] Improve user guidance
 - [ ] Add haptic feedback for important actions
 
-### 6.4 Accessibility
+### 7.4 Accessibility
 - [ ] Respect system font size settings
 - [ ] Ensure sufficient color contrast
 - [ ] Ensure touch targets are minimum 44x44 points
@@ -250,18 +301,18 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
-## Feature 7: Input Components & Form Improvements
+## Feature 8: Input Components & Form Improvements
 
 **Goal**: Reusable input components and improved form experience.
 
-### 7.1 Generic UI Components
+### 8.1 Generic UI Components
 - [ ] Create `components/ui/Button.tsx` (reusable button)
 - [ ] Create `components/ui/Input.tsx` (reusable input)
 - [ ] Create `components/ui/Modal.tsx` (reusable modal)
 - [ ] Add dark theme styling to all components
 - [ ] Make components accessible
 
-### 7.2 Form Improvements
+### 8.2 Form Improvements
 - [ ] Update AddCardForm to use new Input component
 - [ ] Improve form validation
 - [ ] Add better error handling
@@ -269,13 +320,13 @@ This document organizes development by **independent features** that can be revi
 - [ ] Add form field labels
 - [ ] Improve form submission flow
 
-### 7.3 Card Number Input
+### 8.3 Card Number Input
 - [ ] Improve card number input formatting
 - [ ] Add input masking
 - [ ] Handle backspace properly
 - [ ] Limit input to 16 digits
 
-### 7.4 Expiry Date Input
+### 8.4 Expiry Date Input
 - [ ] Improve expiry date input
 - [ ] Add input masking (MM/YY)
 - [ ] Validate expiry date format
@@ -286,11 +337,11 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
-## Feature 8: Final Testing & Bug Fixes
+## Feature 9: Final Testing & Bug Fixes
 
 **Goal**: App is thoroughly tested and all bugs are fixed.
 
-### 8.1 Functional Testing
+### 9.1 Functional Testing
 - [ ] Test add card flow
 - [ ] Test card display
 - [ ] Test card copy functionality
@@ -298,16 +349,18 @@ This document organizes development by **independent features** that can be revi
 - [ ] Test card sorting
 - [ ] Test card pinning
 - [ ] Test search/filter
+- [ ] Test data import/export
 
-### 8.2 Edge Cases
+### 9.2 Edge Cases
 - [ ] Test with no cards
 - [ ] Test with many cards (50+)
 - [ ] Test with expired cards
 - [ ] Test with invalid data
 - [ ] Test storage errors
 - [ ] Test app restart (data persistence)
+- [ ] Test import/export with invalid files/passwords
 
-### 8.3 Platform Testing
+### 9.3 Platform Testing
 - [ ] Test on iOS simulator
 - [ ] Test on Android emulator
 - [ ] Test on physical devices (if possible)
@@ -315,14 +368,14 @@ This document organizes development by **independent features** that can be revi
 - [ ] Test dark mode
 - [ ] Test system font sizes
 
-### 8.4 Bug Fixes
+### 9.4 Bug Fixes
 - [ ] Fix any discovered bugs
 - [ ] Fix performance issues
 - [ ] Fix UI/UX issues
 - [ ] Fix storage issues
 - [ ] Fix validation issues
 
-### 8.5 Code Quality
+### 9.5 Code Quality
 - [ ] Review code for best practices
 - [ ] Remove unused code
 - [ ] Add comments where needed
@@ -334,11 +387,11 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
-## Feature 9: Documentation & Finalization
+## Feature 10: Documentation & Finalization
 
 **Goal**: Code is documented, and app is ready for release.
 
-### 9.1 Code Documentation
+### 10.1 Code Documentation
 - [ ] Document complex functions
 - [ ] Document component props
 - [ ] Document service methods
@@ -346,12 +399,12 @@ This document organizes development by **independent features** that can be revi
 - [ ] Update README.md with setup instructions
 - [ ] Add code comments where needed
 
-### 9.2 User Documentation
+### 10.2 User Documentation
 - [ ] Document app features
 - [ ] Document how to use the app
 - [ ] Add help text in app (if needed)
 
-### 9.3 Final Checks
+### 10.3 Final Checks
 - [ ] Verify all requirements are met
 - [ ] Verify all acceptance criteria are met
 - [ ] Verify dark theme is consistent
@@ -360,7 +413,7 @@ This document organizes development by **independent features** that can be revi
 - [ ] Verify security is proper
 - [ ] Verify accessibility (system font size)
 
-### 9.4 App Store Preparation
+### 10.4 App Store Preparation
 - [ ] Prepare app icons
 - [ ] Prepare screenshots
 - [ ] Write app description
@@ -384,10 +437,11 @@ This document organizes development by **independent features** that can be revi
 - **Feature 3** depends on Feature 2
 - **Feature 4** (Search & Filter) depends on Feature 3
 - **Feature 5** (Card Pinning) depends on Feature 3
-- **Feature 6** (Polish & Animations) should be done after core features
-- **Feature 7** (Input Components) can be done early or integrated with other features
-- **Feature 8** (Testing) is done after all features
-- **Feature 9** (Documentation) is final step
+- **Feature 6** (Data Import/Export) depends on Feature 1
+- **Feature 7** (Polish & Animations) should be done after core features
+- **Feature 8** (Input Components) can be done early or integrated with other features
+- **Feature 9** (Testing) is done after all features
+- **Feature 10** (Documentation) is final step
 
 ### Recommended Order
 1. Feature 1: Basic Setup & Add Card (MVP)
@@ -395,10 +449,11 @@ This document organizes development by **independent features** that can be revi
 3. Feature 3: Copy Functionality & Usage Tracking
 4. Feature 4: Search & Filter
 5. Feature 5: Card Pinning
-6. Feature 7: Input Components & Form Improvements (can be done earlier)
-7. Feature 6: Polish & Animations
-8. Feature 8: Final Testing & Bug Fixes
-9. Feature 9: Documentation & Finalization
+6. Feature 6: Data Import & Export
+7. Feature 8: Input Components & Form Improvements (can be done earlier)
+8. Feature 7: Polish & Animations
+9. Feature 9: Final Testing & Bug Fixes
+10. Feature 10: Documentation & Finalization
 
 ---
 
@@ -424,12 +479,13 @@ This document organizes development by **independent features** that can be revi
 
 ### Enhanced Features (Should Have)
 - Feature 4: Search & Filter
+- Feature 6: Data Import & Export
 
 ### Polish Features (Nice to Have)
-- Feature 6: Polish & Animations
-- Feature 7: Input Components & Form Improvements
-- Feature 8: Final Testing & Bug Fixes
-- Feature 9: Documentation & Finalization
+- Feature 7: Polish & Animations
+- Feature 8: Input Components & Form Improvements
+- Feature 9: Final Testing & Bug Fixes
+- Feature 10: Documentation & Finalization
 
 ---
 
