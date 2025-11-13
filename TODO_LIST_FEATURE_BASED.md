@@ -216,30 +216,30 @@ This document organizes development by **independent features** that can be revi
 **Goal**: Users can export their card data to an encrypted file and import it back.
 
 ### 6.0 Refactor Explore Tab to Settings Tab
-- [ ] Rename `app/(tabs)/explore.tsx` to `app/(tabs)/settings.tsx`.
-- [ ] Update `app/(tabs)/_layout.tsx` to replace the 'Explore' tab with a 'Settings' tab, including updating the name and icon.
-- [ ] Clear the existing content of the new `app/(tabs)/settings.tsx` file to prepare it for the settings UI.
+- [x] Rename `app/(tabs)/explore.tsx` to `app/(tabs)/settings.tsx`.
+- [x] Update `app/(tabs)/_layout.tsx` to replace the 'Explore' tab with a 'Settings' tab, including updating the name and icon.
+- [x] Clear the existing content of the new `app/(tabs)/settings.tsx` file to prepare it for the settings UI.
 
 ### 6.1 UI for Settings
-- [ ] Build the basic UI for the settings screen in `app/(tabs)/settings.tsx`.
-- [ ] Add pressable list items for "Import Data" and "Export Data".
+- [x] Build the basic UI for the settings screen in `app/(tabs)/settings.tsx`.
+- [x] Add pressable list items for "Import Data" and "Export Data".
 
 ### 6.2 Crypto Utilities
-- [ ] Create `utils/crypto.ts` for encryption/decryption and hashing.
-- [ ] Implement `encrypt(data: string, key: string): Promise<string>` using AES-256.
-- [ ] Implement `decrypt(encryptedData: string, key: string): Promise<string>`.
-- [ ] Implement `generateHash(data: string): Promise<string>` using SHA-256.
-- [ ] Choose and install a crypto library (e.g., `expo-crypto` or a pure JS one).
+- [x] Create `utils/crypto.ts` for encryption/decryption and hashing.
+- [x] Implement `encrypt(data: string, key: string): Promise<string>` using AES-256.
+- [x] Implement `decrypt(encryptedData: string, key: string): Promise<string>`.
+- [x] Implement `generateHash(data: string): Promise<string>` using SHA-256.
+- [x] Choose and install a crypto library (e.g., `expo-crypto` or a pure JS one).
 
 ### 6.3 Export Flow
-- [ ] Connect the "Export Data" button to the export workflow.
-- [ ] Create a modal to prompt the user for an export password.
-- [ ] On confirmation:
-    - [ ] Fetch all cards from storage.
-    - [ ] Create a JSON object containing the cards and a SHA-256 hash of the card data.
-    - [ ] Encrypt the JSON object using AES-256 with the user's password.
-    - [ ] Use `expo-document-picker` or similar to let the user save the encrypted file as `cardvault-export.json`.
-- [ ] Show a success toast message after export.
+- [x] Connect the "Export Data" button to the export workflow.
+- [x] Create a modal to prompt the user for an export password.
+- [x] On confirmation:
+    - [x] Fetch all cards from storage.
+    - [x] Create a JSON object containing the cards and a SHA-256 hash of the card data.
+    - [x] Encrypt the JSON object using AES-256 with the user's password.
+    - [x] Use `expo-document-picker` or similar to let the user save the encrypted file as `cardvault-export.json`.
+- [x] Show a success toast message after export.
 
 ### 6.4 Import Flow
 - [ ] Connect the "Import Data" button to the import workflow.
