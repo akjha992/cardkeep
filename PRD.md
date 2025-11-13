@@ -28,7 +28,7 @@ CardVault is an offline mobile application designed to securely store and manage
 #### 2.1.1 Card Management
 - **Add New Card**: Users can add multiple credit/debit cards
 - **View Cards**: Display all cards in a scrollable list
-- **Edit Card**: Modify existing card details (future consideration)
+- **Edit Card**: From the card long-press menu, users can choose **Edit** which opens the existing Add Card form pre-filled with the current card’s data. Submitting the form updates the card in place without altering usage statistics or timestamps unless the user changes those specific fields.
 - **Delete Card**: Remove cards from the vault
 
 #### 2.1.2 Card Information Fields
@@ -39,6 +39,7 @@ Each card must store:
 - **Bank Name** (selected from predefined dropdown or custom entry)
 - **Cardholder Name** (user's name on the card)
 - **Card Type** (Credit or Debit) - Required field
+- **Bill Generation Day** (Optional; credit cards only, stored as day-of-month 1–31. Field can be added later via edit flow.)
 - **Color** (User-selectable color for card design) - Optional
 
 #### 2.1.3 Card Display UI
@@ -99,6 +100,7 @@ interface Card {
   bankName: string; // Bank name
   cardholderName: string; // Cardholder name
   cardType: 'Credit' | 'Debit'; // Card type (required)
+  billGenerationDay?: number | null; // Optional day-of-month (1-31) for credit card bill generation
   usageCount: number; // Number of times card number is copied
   isPinned: boolean; // Whether card is pinned
   createdAt: number; // Creation timestamp (Unix timestamp)

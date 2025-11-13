@@ -10,6 +10,7 @@ export interface Card {
   bankName: string; // Bank name
   cardholderName: string; // Cardholder name
   cardType: 'Credit' | 'Debit'; // Card type (required)
+  billGenerationDay?: number | null; // Optional bill generation day (1-31) for credit cards
   usageCount: number; // Number of times card number is copied
   isPinned: boolean; // Whether card is pinned
   createdAt: number; // Creation timestamp (Unix timestamp)
@@ -18,4 +19,3 @@ export interface Card {
 }
 
 export type CardType = 'Credit' | 'Debit';
-

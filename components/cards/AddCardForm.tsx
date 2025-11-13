@@ -3,7 +3,7 @@
  * Basic form for adding a new card
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -17,17 +17,26 @@ import { Card, CardType } from '@/types/card.types';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { saveCard } from '@/services/storage.service';
+import { formatCardNumber } from '@/utils/formatters';
 import { v4 as uuidv4 } from 'uuid';
 import 'react-native-get-random-values';
 
 interface AddCardFormProps {
   onSave: () => void;
   onCancel: () => void;
+  initialCard?: Card;
+  mode?: 'add' | 'edit';
 }
 
-export default function AddCardForm({ onSave, onCancel }: AddCardFormProps) {
+export default function AddCardForm({
+  onSave,
+  onCancel,
+  initialCard,
+  mode = 'add',
+}: AddCardFormProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const isEditMode = mode === 'edit' || Boolean(initialCard);
 
   const [cardNumber, setCardNumber] = useState('');
   const [cvv, setCvv] = useState('');
@@ -35,8 +44,40 @@ export default function AddCardForm({ onSave, onCancel }: AddCardFormProps) {
   const [bankName, setBankName] = useState('');
   const [cardholderName, setCardholderName] = useState('');
   const [cardType, setCardType] = useState<CardType>('Credit');
+  const [billGenerationDay, setBillGenerationDay] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!initialCard) {
+      return;
+    }
+
+    setCardNumber(formatCardNumber(initialCard.cardNumber));
+    setCvv(initialCard.cvv);
+    setExpiryDate(initialCard.expiryDate);
+    setBankName(initialCard.bankName);
+    setCardholderName(initialCard.cardholderName);
+    setCardType(initialCard.cardType);
+    setBillGenerationDay(
+      initialCard.cardType === 'Credit' && typeof initialCard.billGenerationDay === 'number'
+        ? String(initialCard.billGenerationDay)
+        : ''
+    );
+  }, [initialCard]);
+
+  const handleSelectCardType = (type: CardType) => {
+    setCardType(type);
+    if (type === 'Debit') {
+      setBillGenerationDay('');
+      setErrors(prev => {
+        if (!prev.billGenerationDay) return prev;
+        const next = { ...prev };
+        delete next.billGenerationDay;
+        return next;
+      });
+    }
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -72,6 +113,13 @@ export default function AddCardForm({ onSave, onCancel }: AddCardFormProps) {
       newErrors.cardholderName = 'Cardholder name is required';
     }
 
+    if (cardType === 'Credit' && billGenerationDay.trim()) {
+      const day = Number(billGenerationDay.trim());
+      if (Number.isNaN(day) || day < 1 || day > 31) {
+        newErrors.billGenerationDay = 'Bill generation day must be between 1 and 31';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -86,19 +134,38 @@ export default function AddCardForm({ onSave, onCancel }: AddCardFormProps) {
     try {
       // Remove spaces from card number for storage
       const cleanCardNumber = cardNumber.replace(/\s/g, '');
+      const now = Date.now();
+      const baseCard: Card = initialCard
+        ? { ...initialCard }
+        : {
+            id: uuidv4(),
+            cardNumber: '',
+            cvv: '',
+            expiryDate: '',
+            bankName: '',
+            cardholderName: '',
+            cardType,
+            billGenerationDay: null,
+            usageCount: 0,
+            isPinned: false,
+            createdAt: now,
+            lastUsedAt: now,
+          };
+
+      const parsedBillDay =
+        cardType === 'Credit' && billGenerationDay.trim()
+          ? Number(billGenerationDay.trim())
+          : null;
 
       const newCard: Card = {
-        id: uuidv4(),
+        ...baseCard,
         cardNumber: cleanCardNumber,
         cvv: cvv.trim(),
         expiryDate: expiryDate.trim(),
         bankName: bankName.trim(),
         cardholderName: cardholderName.trim(),
         cardType,
-        usageCount: 0,
-        isPinned: false,
-        createdAt: Date.now(),
-        lastUsedAt: Date.now(),
+        billGenerationDay: cardType === 'Credit' ? parsedBillDay : null,
       };
 
       await saveCard(newCard);
@@ -115,7 +182,7 @@ export default function AddCardForm({ onSave, onCancel }: AddCardFormProps) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Add New Card</Text>
+      <Text style={styles.title}>{isEditMode ? 'Edit Card' : 'Add New Card'}</Text>
 
       {/* Card Type */}
       <View style={styles.section}>
@@ -126,7 +193,7 @@ export default function AddCardForm({ onSave, onCancel }: AddCardFormProps) {
               styles.cardTypeButton,
               cardType === 'Credit' && styles.cardTypeButtonActive,
             ]}
-            onPress={() => setCardType('Credit')}
+            onPress={() => handleSelectCardType('Credit')}
           >
             <Text
               style={[
@@ -142,7 +209,7 @@ export default function AddCardForm({ onSave, onCancel }: AddCardFormProps) {
               styles.cardTypeButton,
               cardType === 'Debit' && styles.cardTypeButtonActive,
             ]}
-            onPress={() => setCardType('Debit')}
+            onPress={() => handleSelectCardType('Debit')}
           >
             <Text
               style={[
@@ -230,11 +297,32 @@ export default function AddCardForm({ onSave, onCancel }: AddCardFormProps) {
           onChangeText={setCardholderName}
           placeholder="John Doe"
           placeholderTextColor={isDark ? '#666' : '#999'}
-        />
-        {errors.cardholderName && (
-          <Text style={styles.errorText}>{errors.cardholderName}</Text>
-        )}
-      </View>
+      />
+      {errors.cardholderName && (
+        <Text style={styles.errorText}>{errors.cardholderName}</Text>
+      )}
+    </View>
+
+      {cardType === 'Credit' && (
+        <View style={styles.section}>
+          <Text style={styles.label}>Bill Generation Day (Optional)</Text>
+          <TextInput
+            style={[styles.input, errors.billGenerationDay && styles.inputError]}
+            value={billGenerationDay}
+            onChangeText={(value) => {
+              const sanitized = value.replace(/[^0-9]/g, '');
+              setBillGenerationDay(sanitized);
+            }}
+            placeholder="e.g., 15"
+            placeholderTextColor={isDark ? '#666' : '#999'}
+            keyboardType="numeric"
+            maxLength={2}
+          />
+          {errors.billGenerationDay && (
+            <Text style={styles.errorText}>{errors.billGenerationDay}</Text>
+          )}
+        </View>
+      )}
 
       {/* Buttons */}
       <View style={styles.buttonContainer}>
@@ -251,7 +339,7 @@ export default function AddCardForm({ onSave, onCancel }: AddCardFormProps) {
           disabled={isSubmitting}
         >
           <Text style={styles.submitButtonText}>
-            {isSubmitting ? 'Saving...' : 'Save Card'}
+            {isSubmitting ? 'Saving...' : isEditMode ? 'Save Changes' : 'Save Card'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -356,4 +444,3 @@ const getStyles = (isDark: boolean) =>
       opacity: 0.5,
     },
   });
-

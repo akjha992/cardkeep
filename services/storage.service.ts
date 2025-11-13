@@ -39,7 +39,14 @@ export async function getCards(): Promise<Card[]> {
     if (!cardsJson) {
       return [];
     }
-    return JSON.parse(cardsJson);
+    const rawCards: Card[] = JSON.parse(cardsJson);
+    return rawCards.map((card) => ({
+      ...card,
+      billGenerationDay:
+        typeof card.billGenerationDay === 'number'
+          ? card.billGenerationDay
+          : card.billGenerationDay ?? null,
+    }));
   } catch (error) {
     console.error('Error getting cards:', error);
     throw new Error('Failed to load cards. Please try again.');

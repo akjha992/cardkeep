@@ -262,6 +262,35 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
+## Feature 11: Card Editing & Billing Date
+
+**Goal**: Allow users to edit existing cards using the current form and optionally store a bill generation day for credit cards.
+
+### 11.1 Data Model Updates
+- [ ] Add `billGenerationDay?: number | null` to `Card` type.
+- [ ] Update storage service, import/export bundles, and migrations to persist the new field.
+- [ ] Ensure bill generation day is optional and only applies to credit cards.
+
+### 11.2 Form Enhancements
+- [ ] Refactor `AddCardForm` to accept initial values and mode (add vs. edit).
+- [ ] Add an optional “Bill Generation Day” input (1–31) that appears when `cardType === 'Credit'`.
+- [ ] Validate the day range and allow the field to be blank.
+- [ ] Pass new field through save logic.
+
+### 11.3 Edit Flow Integration
+- [ ] Add “Edit” option to the card long-press menu.
+- [ ] Open the Add Card modal pre-filled with the selected card data.
+- [ ] Update the card in storage without resetting usage metrics unless fields change.
+- [ ] Refresh the card list after edits.
+
+### 11.4 UI/Display
+- [ ] Decide where to surface the bill generation day (card detail, list subtitle, etc.) and display it when available.
+- [ ] Ensure optional field is included in import/export summaries and duplicate detection.
+
+**Review Checkpoint**: Users can edit cards seamlessly, and credit cards can store an optional bill generation day.
+
+---
+
 ## Feature 7: Polish & Animations
 
 **Goal**: App feels polished with smooth animations and refined UI.

@@ -5,7 +5,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Card } from '@/types/card.types';
 import { deleteCard, incrementUsage, togglePin } from '@/services/storage.service';
@@ -18,7 +18,6 @@ import * as Haptics from 'expo-haptics';
 import { SearchBar } from '@/components/ui/SearchBar';
 
 export default function HomeScreen() {
-  const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { showToast } = useToast();
@@ -56,6 +55,13 @@ export default function HomeScreen() {
 
   const handleAddCard = () => {
     router.push('/add-card');
+  };
+
+  const handleEditCard = (card: Card) => {
+    router.push({
+      pathname: '/add-card',
+      params: { id: card.id },
+    });
   };
 
   const handleDeleteCard = async (id: string) => {
@@ -104,6 +110,7 @@ export default function HomeScreen() {
         onDeleteCard={handleDeleteCard}
         onCopyCard={handleCopyCard}
         onTogglePinCard={handleTogglePinCard}
+        onEditCard={handleEditCard}
       />
 
       <TouchableOpacity style={styles.fab} onPress={handleAddCard}>

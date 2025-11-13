@@ -17,6 +17,7 @@ interface CardListProps {
   onDeleteCard: (id: string) => void;
   onCopyCard: (id: string) => void;
   onTogglePinCard: (id: string) => void;
+  onEditCard: (card: Card) => void;
 }
 
 export default function CardList({
@@ -26,6 +27,7 @@ export default function CardList({
   onDeleteCard,
   onCopyCard,
   onTogglePinCard,
+  onEditCard,
 }: CardListProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -50,6 +52,7 @@ export default function CardList({
           onDelete={onDeleteCard}
           onCopy={onCopyCard}
           onTogglePin={onTogglePinCard}
+          onEdit={onEditCard}
         />
       )}
       keyExtractor={(item) => item.id}
@@ -84,4 +87,3 @@ const getStyles = (isDark: boolean) =>
       textAlign: 'center',
     },
   });
-

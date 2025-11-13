@@ -69,7 +69,16 @@ export async function importCardData(fileUri: string, password: string): Promise
     }
 
     normalizedNumbers.add(normalizedNumber);
-    newCards.push({ ...card, cardNumber: normalizedNumber });
+    const billGenerationDay =
+      card.cardType === 'Credit' && typeof card.billGenerationDay === 'number'
+        ? card.billGenerationDay
+        : null;
+
+    newCards.push({
+      ...card,
+      cardNumber: normalizedNumber,
+      billGenerationDay,
+    });
   }
 
   if (newCards.length > 0) {

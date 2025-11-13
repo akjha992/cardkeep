@@ -5,7 +5,7 @@ import { copyToClipboard } from '@/utils/clipboard';
 import { formatExpiryDate, maskCardNumber, removeSpacesFromCardNumber } from '@/utils/formatters';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, Dimensions, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Standard credit card ratio (85.60 × 53.98 mm)
@@ -13,15 +13,55 @@ const CARD_ASPECT_RATIO = 1.586;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 48; // Full width minus horizontal padding
 const CARD_HEIGHT = CARD_WIDTH / CARD_ASPECT_RATIO;
+const BILL_PAYMENT_WINDOW_DAYS = 15;
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+function clampBillDay(year: number, month: number, billDay: number): Date {
+  const maxDay = new Date(year, month + 1, 0).getDate();
+  const safeDay = Math.min(billDay, maxDay);
+  const date = new Date(year, month, safeDay);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function getBillStatusMessage(billDay: number, referenceDate: Date = new Date()): string {
+  const today = new Date(referenceDate);
+  today.setHours(0, 0, 0, 0);
+
+  const year = today.getFullYear();
+  const month = today.getMonth();
+
+  const currentMonthBill = clampBillDay(year, month, billDay);
+  const nextMonthBill = clampBillDay(year, month + 1, billDay);
+  const previousMonthBill = clampBillDay(year, month - 1, billDay);
+
+  const nextBillDate = today > currentMonthBill ? nextMonthBill : currentMonthBill;
+  const lastBillDate = today >= currentMonthBill ? currentMonthBill : previousMonthBill;
+
+  const daysUntilNextBill = Math.round((nextBillDate.getTime() - today.getTime()) / DAY_IN_MS);
+  if (daysUntilNextBill === 0) {
+    return 'Next bill today';
+  }
+
+  const daysSinceLastBill = Math.round((today.getTime() - lastBillDate.getTime()) / DAY_IN_MS);
+  if (daysSinceLastBill > 0 && daysSinceLastBill <= BILL_PAYMENT_WINDOW_DAYS) {
+    const dueDate = new Date(lastBillDate.getTime() + BILL_PAYMENT_WINDOW_DAYS * DAY_IN_MS);
+    const dueLabel = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return `Bill due by ${dueLabel}`;
+  }
+
+  return `Next bill in ${daysUntilNextBill} days`;
+}
 
 interface CardItemProps {
   card: Card;
   onDelete: (id: string) => void;
   onCopy: (id: string) => void;
   onTogglePin: (id: string) => void;
+  onEdit: (card: Card) => void;
 }
 
-export default function CardItem({ card, onDelete, onCopy, onTogglePin }: CardItemProps) {
+export default function CardItem({ card, onDelete, onCopy, onTogglePin, onEdit }: CardItemProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -50,11 +90,22 @@ export default function CardItem({ card, onDelete, onCopy, onTogglePin }: CardIt
     onTogglePin(card.id);
   };
 
+  const handleEdit = () => {
+    setIsMenuVisible(false);
+    onEdit(card);
+  };
+
   const handleLongPress = () => {
     setIsMenuVisible(true);
   };
 
   const styles = getStyles(isDark);
+  const billStatusMessage = useMemo(() => {
+    if (card.cardType !== 'Credit' || typeof card.billGenerationDay !== 'number') {
+      return null;
+    }
+    return getBillStatusMessage(card.billGenerationDay);
+  }, [card.cardType, card.billGenerationDay]);
   const cardColors = card.color ? [card.color, card.color] : ['#2D2D2D', '#1A1A1A'];
 
   return (
@@ -100,8 +151,13 @@ export default function CardItem({ card, onDelete, onCopy, onTogglePin }: CardIt
             </View>
           </View>
 
-          <View style={styles.cardTypeBadge}>
-            <Text style={styles.cardTypeText}>{card.cardType}</Text>
+          <View style={styles.cardTypeBadgeContainer}>
+            <View style={styles.cardTypeBadge}>
+              <Text style={styles.cardTypeText}>{card.cardType}</Text>
+            </View>
+            {billStatusMessage && (
+              <Text style={styles.billDayText}>{billStatusMessage}</Text>
+            )}
           </View>
         </LinearGradient>
       </Pressable>
@@ -114,6 +170,15 @@ export default function CardItem({ card, onDelete, onCopy, onTogglePin }: CardIt
       >
         <Pressable style={styles.modalOverlay} onPress={() => setIsMenuVisible(false)}>
           <View style={styles.menuContainer}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleEdit}>
+              <Ionicons
+                name="create-outline"
+                size={22}
+                color={isDark ? Colors.dark.icon : Colors.light.icon}
+              />
+              <Text style={styles.menuText}>Edit</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
             <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
               <Ionicons
                 name="trash-outline"
@@ -203,10 +268,13 @@ const getStyles = (isDark: boolean) =>
       fontWeight: '500',
       fontFamily: Fonts.mono,
     },
-    cardTypeBadge: {
+    cardTypeBadgeContainer: {
       position: 'absolute',
       top: 22,
       right: 24,
+      alignItems: 'flex-end',
+    },
+    cardTypeBadge: {
       paddingHorizontal: 8,
       paddingVertical: 4,
       backgroundColor: 'rgba(255,255,255,0.15)',
@@ -217,6 +285,12 @@ const getStyles = (isDark: boolean) =>
       fontSize: 10,
       fontWeight: '600',
       textTransform: 'uppercase',
+    },
+    billDayText: {
+      marginTop: 6,
+      color: Colors.dark.text,
+      fontSize: 10,
+      fontWeight: '500',
     },
     modalOverlay: {
       flex: 1,

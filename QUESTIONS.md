@@ -199,6 +199,20 @@ This document outlines questions and decisions needed before development begins.
 - **Recommendation**: Option A (`expo-secure-store`) - best security for sensitive data
 - **Action Required**: I want data to be stored locally, should not be transferred on network. Use Option A if that is the case. Otherwise calrify again.
 
+## 9. Card Editing & Billing Enhancements
+
+### Q9.1: Edit Entry Point
+- **Question**: How should users initiate the edit flow for an existing card? (e.g., add an “Edit” option to the current long-press menu, a dedicated button on the card, or open the add-card modal pre-filled from another screen?)
+- **Action Required**: Clarify the desired UX so we know where to place the edit affordance.
+
+### Q9.2: Editable Fields & Side Effects
+- **Question**: During editing, can users change every field (including card number) or should some values be read-only? If a card number changes, should usage counters (`usageCount`, `lastUsedAt`) reset or stay as-is?
+- **Action Required**: Provide guidance on which fields are editable and whether edits impact usage statistics or timestamps.
+
+### Q9.3: Bill Generation Date Details
+- **Question**: For credit cards, should the bill generation date be stored as a simple day-of-month (1–31), a specific calendar date, or something else? Are there timezone or reminder behaviors tied to it, and should it appear anywhere in the UI besides the edit form?
+- **Action Required**: Confirm expected format, validation rules, and display requirements for the bill generation date field.
+
 ### Q8.2: Data Migration
 - **Question**: How should we handle data structure changes in future updates?
   - Option A: Version-based migration system
