@@ -47,6 +47,18 @@ export async function getCards(): Promise<Card[]> {
 }
 
 /**
+ * Overwrite all cards in storage.
+ */
+export async function setCards(cards: Card[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(cards));
+  } catch (error) {
+    console.error('Error setting cards:', error);
+    throw new Error('Failed to persist cards. Please try again.');
+  }
+}
+
+/**
  * Update a card
  */
 export async function updateCard(id: string, updates: Partial<Card>): Promise<void> {

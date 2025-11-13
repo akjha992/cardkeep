@@ -242,21 +242,21 @@ This document organizes development by **independent features** that can be revi
 - [x] Show a success toast message after export.
 
 ### 6.4 Import Flow
-- [ ] Connect the "Import Data" button to the import workflow.
-- [ ] Use `expo-document-picker` for the user to select an import file.
-- [ ] After file selection, prompt the user for the password.
-- [ ] On confirmation:
-    - [ ] Read the selected file.
-    - [ ] Decrypt the content with the provided password.
-    - [ ] Parse the decrypted JSON.
-    - [ ] Verify the hash to ensure data integrity.
-    - [ ] If hash is invalid, show an error and stop.
-    - [ ] Iterate through imported cards:
-        - [ ] Check for duplicates based on card number.
-        - [ ] Add new cards to storage.
-        - [ ] Keep track of imported and skipped (duplicate) cards.
-- [ ] Show a summary notification (e.g., "5 cards imported, 3 duplicates skipped.").
-- [ ] Refresh the card list to show the newly imported cards.
+- [x] Connect the "Import Data" button to the import workflow.
+- [x] Use `expo-document-picker` for the user to select an import file.
+- [x] After file selection, prompt the user for the password.
+- [x] On confirmation:
+    - [x] Read the selected file.
+    - [x] Decrypt the content with the provided password.
+    - [x] Parse the decrypted JSON.
+    - [x] Verify the hash to ensure data integrity.
+    - [x] If hash is invalid, show an error and stop.
+    - [x] Iterate through imported cards:
+        - [x] Check for duplicates based on card number.
+        - [x] Add new cards to storage.
+        - [x] Keep track of imported and skipped (duplicate) cards.
+- [x] Show a summary notification (e.g., "5 cards imported, 3 duplicates skipped.").
+- [x] Refresh the card list to show the newly imported cards.
 
 **Review Checkpoint**: User can successfully export all card data to a password-protected file and import it on another device or after re-installation. Duplicates are handled correctly.
 
