@@ -291,6 +291,33 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
+## Feature 12: Bill Reminders
+
+**Goal**: Provide a dedicated Reminders tab that surfaces cards whose statement or payment due dates fall within the user-defined reminder window.
+
+### 12.1 Settings
+- [x] Add a “Reminder window (days)” selector in Settings (range 1–15, default 5).
+- [x] Persist the reminder window in storage and reuse it for filtering reminders.
+
+### 12.2 Reminder Logic
+- [x] Reuse bill generation day + 15-day payment window to calculate upcoming statement and due dates per card.
+- [x] Build helpers that, given `billGenerationDay`, return both next statement date and due date, plus how many days away each is.
+- [x] Determine if a card should appear in reminders when either event falls within the configured window and hasn’t been dismissed for the current cycle (with per-cycle dismissal storage).
+
+### 12.3 Reminders Screen
+- [x] Create a dedicated `Reminders` tab screen.
+- [x] List cards with active reminders showing: bank name, statement/due reason, target date, and relative text (e.g., “Next bill in 3 days” or “Bill may be due by Nov 25”).
+- [x] Support swipe/press actions (or buttons) to dismiss a reminder until the next cycle.
+- [x] Show empty state when no reminders are active.
+
+### 12.4 Surfacing Alerts
+- [x] Show a banner on the Home screen when reminders exist, with CTA to open the Reminders tab.
+- [x] Provide a manual reset option to regenerate dismissed reminders.
+
+**Review Checkpoint**: Users can configure a reminder window, see all cards with upcoming statements/due dates in the Reminders tab, and dismiss reminders per cycle.
+
+---
+
 ## Feature 7: Polish & Animations
 
 **Goal**: App feels polished with smooth animations and refined UI.

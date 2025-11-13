@@ -3,6 +3,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Card } from '@/types/card.types';
 import { copyToClipboard } from '@/utils/clipboard';
 import { formatExpiryDate, maskCardNumber, removeSpacesFromCardNumber } from '@/utils/formatters';
+import { getBillStatusMessage } from '@/utils/billing';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useMemo, useState } from 'react';
@@ -13,46 +14,6 @@ const CARD_ASPECT_RATIO = 1.586;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 48; // Full width minus horizontal padding
 const CARD_HEIGHT = CARD_WIDTH / CARD_ASPECT_RATIO;
-const BILL_PAYMENT_WINDOW_DAYS = 15;
-const DAY_IN_MS = 24 * 60 * 60 * 1000;
-
-function clampBillDay(year: number, month: number, billDay: number): Date {
-  const maxDay = new Date(year, month + 1, 0).getDate();
-  const safeDay = Math.min(billDay, maxDay);
-  const date = new Date(year, month, safeDay);
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
-
-function getBillStatusMessage(billDay: number, referenceDate: Date = new Date()): string {
-  const today = new Date(referenceDate);
-  today.setHours(0, 0, 0, 0);
-
-  const year = today.getFullYear();
-  const month = today.getMonth();
-
-  const currentMonthBill = clampBillDay(year, month, billDay);
-  const nextMonthBill = clampBillDay(year, month + 1, billDay);
-  const previousMonthBill = clampBillDay(year, month - 1, billDay);
-
-  const nextBillDate = today > currentMonthBill ? nextMonthBill : currentMonthBill;
-  const lastBillDate = today >= currentMonthBill ? currentMonthBill : previousMonthBill;
-
-  const daysUntilNextBill = Math.round((nextBillDate.getTime() - today.getTime()) / DAY_IN_MS);
-  if (daysUntilNextBill === 0) {
-    return 'Next bill today';
-  }
-
-  const daysSinceLastBill = Math.round((today.getTime() - lastBillDate.getTime()) / DAY_IN_MS);
-  if (daysSinceLastBill > 0 && daysSinceLastBill <= BILL_PAYMENT_WINDOW_DAYS) {
-    const dueDate = new Date(lastBillDate.getTime() + BILL_PAYMENT_WINDOW_DAYS * DAY_IN_MS);
-    const dueLabel = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    return `Bill due by ${dueLabel}`;
-  }
-
-  return `Next bill in ${daysUntilNextBill} days`;
-}
-
 interface CardItemProps {
   card: Card;
   onDelete: (id: string) => void;

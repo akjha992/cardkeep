@@ -213,6 +213,18 @@ This document outlines questions and decisions needed before development begins.
 - **Question**: For credit cards, should the bill generation date be stored as a simple day-of-month (1–31), a specific calendar date, or something else? Are there timezone or reminder behaviors tied to it, and should it appear anywhere in the UI besides the edit form?
 - **Action Required**: Confirm expected format, validation rules, and display requirements for the bill generation date field.
 
+### Q9.4: Reminder Window UX
+- **Question**: For the upcoming bill reminder feature, where should we surface the reminder list (dedicated tab, banner, modal)? Should users dismiss/snooze reminders per card, or is viewing enough?
+- **Action Required**: Dedicated tab. User should dismiss
+
+### Q9.5: Reminder Window Settings
+- **Question**: Should the reminder window (e.g., “show bills due in next N days”) be a single global number defined in Settings, or per-card? Also confirm the acceptable range (1–15 as in due window, or wider?).
+- **Action Required**: It can be in settings. 1-15 is acceptable.
+
+### Q9.6: Reminder Types
+- **Question**: Do we need two reminder buckets (“Upcoming statements” vs “Payment due”) or just a single list? Should the UI explicitly show both dates (statement date and due date) for each card?
+- **Action Required**: Just one list, the info can state if the reminder is because of bill date or due date.
+
 ### Q8.2: Data Migration
 - **Question**: How should we handle data structure changes in future updates?
   - Option A: Version-based migration system

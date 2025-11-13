@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -16,6 +16,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useToast } from '@/components/ui/Toast';
 import { exportCardData } from '@/services/export.service';
 import { importCardData } from '@/services/import.service';
+import { getAppPreferences, updateAppPreferences } from '@/services/preferences.service';
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
@@ -34,6 +35,25 @@ export default function SettingsScreen() {
   const [selectedImportFile, setSelectedImportFile] =
     useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [reminderWindowDays, setReminderWindowDays] = useState(5);
+  const [isReminderLoading, setIsReminderLoading] = useState(true);
+  const [isSavingReminder, setIsSavingReminder] = useState(false);
+
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const prefs = await getAppPreferences();
+        setReminderWindowDays(prefs.reminderWindowDays);
+      } catch (error) {
+        console.error('Failed to load preferences:', error);
+        showToast({ message: 'Failed to load reminder settings.', type: 'error' });
+      } finally {
+        setIsReminderLoading(false);
+      }
+    };
+
+    loadPreferences();
+  }, [showToast]);
 
   const openExportModal = () => {
     setExportPassword('');
@@ -162,11 +182,76 @@ export default function SettingsScreen() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const clampReminderDays = (value: number) => {
+    return Math.max(1, Math.min(15, value));
+  };
+
+  const updateReminderWindow = async (delta: number) => {
+    if (isReminderLoading || isSavingReminder) {
+      return;
+    }
+    const previousValue = reminderWindowDays;
+    const nextValue = clampReminderDays(previousValue + delta);
+    if (nextValue === previousValue) {
+      return;
+    }
+    setReminderWindowDays(nextValue);
+    setIsSavingReminder(true);
+    try {
+      await updateAppPreferences({ reminderWindowDays: nextValue });
+      showToast({ message: `Reminder window set to ${nextValue} day(s).`, type: 'success' });
+    } catch (error) {
+      console.error('Failed to save reminder window:', error);
+      showToast({ message: 'Failed to save reminder window.', type: 'error' });
+      setReminderWindowDays(previousValue);
+    } finally {
+      setIsSavingReminder(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Settings</Text>
         <Text style={styles.subtitle}>Manage your card data</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>Reminders</Text>
+        <View style={styles.reminderRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.itemTitle}>Reminder Window</Text>
+            <Text style={styles.itemSubtitle}>
+              Show bills within the next {reminderWindowDays} day(s)
+            </Text>
+          </View>
+          <View style={styles.stepperContainer}>
+            <TouchableOpacity
+              style={[styles.stepperButton, (isReminderLoading || isSavingReminder || reminderWindowDays <= 1) && styles.stepperButtonDisabled]}
+              onPress={() => updateReminderWindow(-1)}
+              disabled={isReminderLoading || isSavingReminder || reminderWindowDays <= 1}
+            >
+              <Text style={styles.stepperButtonText}>−</Text>
+            </TouchableOpacity>
+            <View style={styles.stepperValue}>
+              {isReminderLoading ? (
+                <ActivityIndicator size="small" color={isDark ? Colors.dark.tint : Colors.light.tint} />
+              ) : (
+                <Text style={styles.stepperValueText}>{reminderWindowDays}</Text>
+              )}
+            </View>
+            <TouchableOpacity
+              style={[styles.stepperButton, (isReminderLoading || isSavingReminder || reminderWindowDays >= 15) && styles.stepperButtonDisabled]}
+              onPress={() => updateReminderWindow(1)}
+              disabled={isReminderLoading || isSavingReminder || reminderWindowDays >= 15}
+            >
+              <Text style={styles.stepperButtonText}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <Text style={styles.reminderHint}>
+          Reminders tab highlights cards whose statements or payments fall within this window.
+        </Text>
       </View>
 
       <View style={styles.section}>
@@ -377,6 +462,54 @@ const getStyles = (isDark: boolean) =>
       marginTop: 4,
       fontSize: 14,
       color: isDark ? Colors.dark.icon : Colors.light.icon,
+    },
+    reminderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 12,
+      gap: 12,
+    },
+    reminderHint: {
+      marginTop: 8,
+      fontSize: 12,
+      color: isDark ? Colors.dark.icon : Colors.light.icon,
+      paddingHorizontal: 12,
+    },
+    stepperContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    stepperButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: isDark ? Colors.dark.inputBackground : '#E6E6E6',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    stepperButtonDisabled: {
+      opacity: 0.4,
+    },
+    stepperButtonText: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.text : Colors.light.text,
+    },
+    stepperValue: {
+      minWidth: 48,
+      paddingHorizontal: 8,
+      paddingVertical: 6,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: isDark ? Colors.dark.inputBorder : Colors.light.inputBorder,
+      alignItems: 'center',
+    },
+    stepperValueText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.text : Colors.light.text,
     },
     chevron: {
       fontSize: 24,

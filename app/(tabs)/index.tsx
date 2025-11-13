@@ -3,7 +3,7 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, TouchableOpacity, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -16,6 +16,8 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useToast } from '@/components/ui/Toast';
 import * as Haptics from 'expo-haptics';
 import { SearchBar } from '@/components/ui/SearchBar';
+import { getAppPreferences } from '@/services/preferences.service';
+import { CardReminder, getActiveReminders } from '@/services/reminders.service';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
@@ -25,16 +27,33 @@ export default function HomeScreen() {
   const [cards, setCards] = useState<Card[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [reminderCount, setReminderCount] = useState(0);
+  const [reminderPreview, setReminderPreview] = useState<CardReminder | null>(null);
+
+  const updateReminderInfo = useCallback(
+    async (cardsData: Card[]) => {
+      try {
+        const prefs = await getAppPreferences();
+        const reminders = await getActiveReminders(cardsData, prefs.reminderWindowDays);
+        setReminderCount(reminders.length);
+        setReminderPreview(reminders[0] ?? null);
+      } catch (error) {
+        console.error('Error loading reminders:', error);
+      }
+    },
+    []
+  );
 
   const loadCards = useCallback(async () => {
     try {
       const loadedCards = await getSortedCards();
       setCards(loadedCards);
+      await updateReminderInfo(loadedCards);
     } catch (error) {
       console.error('Error loading cards:', error);
       showToast({ message: 'Failed to load cards.', type: 'error' });
     }
-  }, [showToast]);
+  }, [showToast, updateReminderInfo]);
 
   // Load cards when screen comes into focus
   useFocusEffect(
@@ -62,6 +81,10 @@ export default function HomeScreen() {
       pathname: '/add-card',
       params: { id: card.id },
     });
+  };
+
+  const handleOpenReminders = () => {
+    router.push('/reminders');
   };
 
   const handleDeleteCard = async (id: string) => {
@@ -103,6 +126,19 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <SearchBar onSearch={setSearchQuery} />
+      {reminderCount > 0 && reminderPreview && (
+        <TouchableOpacity style={styles.reminderBanner} onPress={handleOpenReminders}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.reminderBannerTitle}>
+              {reminderCount} bill{reminderCount > 1 ? 's' : ''} coming up
+            </Text>
+            <Text style={styles.reminderBannerSubtitle}>
+              {reminderPreview.card.bankName} — {reminderPreview.label.toLowerCase()}
+            </Text>
+          </View>
+          <Text style={styles.reminderBannerAction}>View</Text>
+        </TouchableOpacity>
+      )}
       <CardList
         cards={filteredCards}
         onRefresh={handleRefresh}
@@ -147,5 +183,29 @@ const getStyles = (isDark: boolean) =>
       color: '#fff',
       fontSize: 24,
       fontWeight: 'bold',
+    },
+    reminderBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 12,
+      backgroundColor: isDark ? Colors.dark.cardBackground ?? '#1f1f1f' : '#f3f3f3',
+      marginHorizontal: 20,
+      marginBottom: 12,
+      borderRadius: 12,
+    },
+    reminderBannerTitle: {
+      color: isDark ? Colors.dark.text : Colors.light.text,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    reminderBannerSubtitle: {
+      marginTop: 4,
+      color: isDark ? Colors.dark.icon : Colors.light.icon,
+      fontSize: 12,
+    },
+    reminderBannerAction: {
+      color: isDark ? Colors.dark.tint : Colors.light.tint,
+      fontWeight: '600',
+      marginLeft: 12,
     },
   });
