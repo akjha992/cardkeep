@@ -258,6 +258,13 @@ This document outlines questions and decisions needed before development begins.
 - **Recommendation**: Option B (not needed for V1) - keep it simple
 - **Action Required**: Option B
 
+### Q9.3: Card Renewal Reminders
+- **Question**: How should we capture and display card renewal dates for credit cards?
+  - Renewal day defaults to the bill generation day; renewal month defaults to the expiry month.
+  - Reminder should only be generated when both bill day and expiry month exist.
+  - Reminder should reuse the existing reminder window preference and reappear next cycle unless reminders are reset.
+- **Action Required**: Renewal month defaults to expiry month and day defaults to bill day; skip reminders if bill day missing; use same reminder window and dismissal rules.
+
 ## 10. Error Handling
 
 ### Q10.1: Storage Errors

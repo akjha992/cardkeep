@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Card } from '@/types/card.types';
-import { getNextStatementDate, getDueDate, BillingConstants } from '@/utils/billing';
+import { getNextStatementDate, getDueDate, BillingConstants, extractExpiryMonth, getNextRenewalDate } from '@/utils/billing';
 
 const DISMISSALS_KEY = 'reminder_dismissals';
 
-export type ReminderReason = 'statement' | 'due';
+export type ReminderReason = 'statement' | 'due' | 'renewal';
 
 export interface CardReminder {
   key: string;
@@ -56,11 +56,18 @@ function createReminder(
   today: Date
 ): CardReminder {
   const daysUntil = Math.round((targetDate.getTime() - today.getTime()) / BillingConstants.DAY_IN_MS);
-  const label = reason === 'statement' ? 'Statement coming up' : 'Payment may be due';
+  const label =
+    reason === 'statement'
+      ? 'Statement coming up'
+      : reason === 'due'
+        ? 'Payment may be due'
+        : 'Card renewal coming up';
   const sublabel =
     reason === 'statement'
       ? `Statement on ${formatDateLabel(targetDate)}`
-      : `Due by ${formatDateLabel(targetDate)}`;
+      : reason === 'due'
+        ? `Due by ${formatDateLabel(targetDate)}`
+        : `Renew by ${formatDateLabel(targetDate)}`;
   const key = buildReminderKey(card.id, reason, targetDate.getTime());
   return {
     key,
@@ -73,7 +80,10 @@ function createReminder(
   };
 }
 
-function getFutureRemindersForCard(card: Card, today: Date): Array<{ reason: ReminderReason; date: Date }> {
+function getFutureRemindersForCard(
+  card: Card,
+  today: Date
+): Array<{ reason: ReminderReason; date: Date }> {
   if (card.cardType !== 'Credit' || typeof card.billGenerationDay !== 'number') {
     return [];
   }
@@ -87,6 +97,14 @@ function getFutureRemindersForCard(card: Card, today: Date): Array<{ reason: Rem
   const dueDate = getDueDate(card.billGenerationDay, today);
   if (dueDate >= today) {
     reminders.push({ reason: 'due', date: dueDate });
+  }
+
+  const expiryMonthIndex = extractExpiryMonth(card.expiryDate);
+  if (expiryMonthIndex !== null) {
+    const renewalDate = getNextRenewalDate(card.billGenerationDay, expiryMonthIndex, today);
+    if (renewalDate >= today) {
+      reminders.push({ reason: 'renewal', date: renewalDate });
+    }
   }
 
   return reminders;

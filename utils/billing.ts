@@ -69,3 +69,30 @@ export const BillingConstants = {
   BILL_PAYMENT_WINDOW_DAYS,
   DAY_IN_MS,
 };
+
+export function extractExpiryMonth(expiry: string): number | null {
+  const normalized = expiry.trim();
+  const match = normalized.match(/^(\d{2})\/?(\d{2})$/);
+  if (!match) {
+    return null;
+  }
+  const month = parseInt(match[1], 10);
+  if (Number.isNaN(month) || month < 1 || month > 12) {
+    return null;
+  }
+  return month - 1; // zero-based for Date constructor
+}
+
+export function getNextRenewalDate(
+  billDay: number,
+  expiryMonthIndex: number,
+  referenceDate: Date = new Date()
+): Date {
+  const today = startOfDay(referenceDate);
+  const year = today.getFullYear();
+  const thisYearRenewal = clampBillDay(year, expiryMonthIndex, billDay);
+  if (thisYearRenewal >= today) {
+    return thisYearRenewal;
+  }
+  return clampBillDay(year + 1, expiryMonthIndex, billDay);
+}

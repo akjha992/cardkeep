@@ -360,6 +360,27 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
+## Feature 15: Card Renewal Reminders
+
+**Goal**: Track card renewal dates for credit cards and surface renewal reminders alongside existing bill reminders.
+
+### 15.1 Data Model & Form Updates
+- [x] Infer renewal month from the card's expiry month; default renewal day to the bill generation day.
+- [x] Skip renewal reminders if a credit card lacks a bill generation day.
+- [x] Persist renewal metadata with each credit card (no new user-facing inputs for now).
+
+### 15.2 Reminder Logic
+- [x] Extend reminders service to compute renewal reminders using the same window (`reminderWindowDays`) as bill reminders.
+- [x] When a renewal reminder is dismissed, resurfacing happens only in the next cycle unless reminders are reset.
+
+### 15.3 UI
+- [x] Label renewal reminders distinctly in the Reminders tab (e.g., “Renewal due in X days”).
+- [x] Ensure the home reminder banner can highlight renewal reminders when they are the next upcoming item.
+
+**Review Checkpoint**: Renewal-ready credit cards automatically appear in reminders ahead of their renewal window with clear labeling and dismissal behavior.
+
+---
+
 ## Feature 7: Polish & Animations
 
 **Goal**: App feels polished with smooth animations and refined UI.
