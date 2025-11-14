@@ -13,11 +13,21 @@ const CARD_ASPECT_RATIO = 1.586;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 48;
 const CARD_HEIGHT = CARD_WIDTH / CARD_ASPECT_RATIO;
-const ACCENT_COLORS = ['#F2994A', '#6DD5FA', '#A78BFA', '#34D399', '#F472B6'];
+const ACCENT_GRADIENTS = [
+  ['#F2994A', '#F25F3A'],
+  ['#6DD5FA', '#439BEF'],
+  ['#A78BFA', '#7C3AED'],
+  ['#34D399', '#059669'],
+  ['#F472B6', '#EC4899'],
+  ['#FACC15', '#F97316'],
+];
 
-const pickAccentColor = (seed: string) => {
+const pickAccentGradient = (seed: string) => {
   const hash = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return ACCENT_COLORS[hash % ACCENT_COLORS.length];
+  const index = hash % ACCENT_GRADIENTS.length;
+  const colors = ACCENT_GRADIENTS[index];
+  const reverse = hash % 2 === 0;
+  return reverse ? [...colors].reverse() : colors;
 };
 
 interface CardItemProps {
@@ -41,7 +51,10 @@ export default function CardItem({ card, onCopy, onEdit }: CardItemProps) {
   }, [card.cardType, card.billGenerationDay]);
 
   const cardColors = card.color ? [card.color, card.color] : ['#2D2D2D', '#1A1A1A'];
-  const accentColor = useMemo(() => pickAccentColor(`${card.bankName}-${card.id}`), [card.bankName, card.id]);
+  const accentGradient = useMemo(
+    () => pickAccentGradient(`${card.bankName}-${card.id}`),
+    [card.bankName, card.id]
+  );
 
   const handlePress = async () => {
     const cleanedCardNumber = removeSpacesFromCardNumber(card.cardNumber);
@@ -82,7 +95,7 @@ export default function CardItem({ card, onCopy, onEdit }: CardItemProps) {
     >
       <Animated.View style={[styles.cardWrapper, { transform: [{ scale }] }]}>
         <LinearGradient colors={cardColors} style={styles.card}>
-          <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+          <LinearGradient colors={accentGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.accentBar} />
           <View style={styles.cardHeader}>
             <View style={styles.bankRow}>
               {card.isPinned && (
