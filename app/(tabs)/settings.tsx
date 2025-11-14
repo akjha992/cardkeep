@@ -365,7 +365,7 @@ export default function SettingsScreen() {
                 <Text style={[styles.modalButtonText, styles.cancelButtonText]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.confirmButton]}
+                style={[styles.modalButton, { backgroundColor: Colors.light.tint }]}
                 onPress={handleConfirmExport}
                 disabled={isExporting}
               >
@@ -438,7 +438,7 @@ export default function SettingsScreen() {
                 <Text style={[styles.modalButtonText, styles.cancelButtonText]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.confirmButton]}
+                style={[styles.modalButton, { backgroundColor: Colors.light.tint }]}
                 onPress={handleConfirmImport}
                 disabled={isImporting}
               >
@@ -619,9 +619,6 @@ const getStyles = (isDark: boolean) =>
     },
     cancelButton: {
       backgroundColor: isDark ? Colors.dark.inputBackground : '#E6E6E6',
-    },
-    confirmButton: {
-      backgroundColor: isDark ? Colors.dark.tint : Colors.light.tint,
     },
     modalButtonText: {
       fontWeight: '600',

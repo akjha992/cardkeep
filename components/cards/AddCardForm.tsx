@@ -3,23 +3,23 @@
  * Basic form for adding a new card
  */
 
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-} from 'react-native';
-import { Card, CardType } from '@/types/card.types';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { saveCard } from '@/services/storage.service';
+import { Card, CardType } from '@/types/card.types';
 import { formatCardNumber } from '@/utils/formatters';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
 
 interface AddCardFormProps {
   onSave: () => void;
@@ -345,7 +345,11 @@ export default function AddCardForm({
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, styles.submitButton, isSubmitting && styles.buttonDisabled]}
+          style={[
+            styles.button,
+            { backgroundColor: Colors.light.tint },
+            isSubmitting && styles.buttonDisabled,
+          ]}
           onPress={handleSubmit}
           disabled={isSubmitting}
         >
@@ -442,9 +446,6 @@ const getStyles = (isDark: boolean) =>
       color: isDark ? Colors.dark.text : Colors.light.text,
       fontSize: 16,
       fontWeight: '600',
-    },
-    submitButton: {
-      backgroundColor: isDark ? Colors.dark.tint : Colors.light.tint,
     },
     submitButtonText: {
       color: '#fff',

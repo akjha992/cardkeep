@@ -145,7 +145,7 @@ const getStyles = (isDark: boolean) =>
       width: 56,
       height: 56,
       borderRadius: 28,
-      backgroundColor: isDark ? Colors.dark.tint : Colors.light.tint,
+      backgroundColor: Colors.light.tint,
       justifyContent: 'center',
       alignItems: 'center',
       elevation: 4,
