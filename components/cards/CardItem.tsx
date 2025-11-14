@@ -1,9 +1,9 @@
 import { Colors, Fonts } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Card } from '@/types/card.types';
+import { getBillStatusMessage } from '@/utils/billing';
 import { copyToClipboard } from '@/utils/clipboard';
 import { formatExpiryDate, maskCardNumber, removeSpacesFromCardNumber } from '@/utils/formatters';
-import { getBillStatusMessage } from '@/utils/billing';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useMemo } from 'react';
@@ -118,9 +118,8 @@ const getStyles = (isDark: boolean) =>
       alignItems: 'flex-start',
     },
     cardTypeRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
+      alignItems: 'flex-end',
+      gap: 4,
     },
     cardTypeBadge: {
       paddingHorizontal: 8,
