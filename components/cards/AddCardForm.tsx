@@ -79,14 +79,25 @@ export default function AddCardForm({
     }
   };
 
+  const handleExpiryChange = (value: string) => {
+    const digitsOnly = value.replace(/[^0-9]/g, '').slice(0, 4);
+    if (digitsOnly.length <= 2) {
+      setExpiryDate(digitsOnly);
+      return;
+    }
+    const formatted = `${digitsOnly.slice(0, 2)}/${digitsOnly.slice(2)}`;
+    setExpiryDate(formatted);
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
     // Card number validation (basic - just check length for now)
-    if (!cardNumber.trim()) {
+    const sanitizedCardNumber = cardNumber.replace(/\s/g, '');
+    if (!sanitizedCardNumber) {
       newErrors.cardNumber = 'Card number is required';
-    } else if (cardNumber.replace(/\s/g, '').length !== 16) {
-      newErrors.cardNumber = 'Card number must be 16 digits';
+    } else if (!/^\d+$/.test(sanitizedCardNumber)) {
+      newErrors.cardNumber = 'Card number must contain only digits';
     }
 
     // CVV validation
@@ -262,7 +273,7 @@ export default function AddCardForm({
         <TextInput
           style={[styles.input, errors.expiryDate && styles.inputError]}
           value={expiryDate}
-          onChangeText={setExpiryDate}
+          onChangeText={handleExpiryChange}
           placeholder="12/25"
           placeholderTextColor={isDark ? '#666' : '#999'}
           keyboardType="numeric"
