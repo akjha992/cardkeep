@@ -127,9 +127,9 @@ export default function AddCardScreen() {
               accessibilityLabel="Pin or unpin card"
             >
               <Ionicons
-                name={initialCard?.isPinned ? 'pin' : 'pin-outline'}
+                name={initialCard?.isPinned ? 'star' : 'star-outline'}
                 size={20}
-                color={isDark ? Colors.dark.text : Colors.light.text}
+                color={isDark ? Colors.dark.tint : Colors.light.tint}
               />
             </TouchableOpacity>
             <TouchableOpacity

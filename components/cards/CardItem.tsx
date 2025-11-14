@@ -30,6 +30,7 @@ export default function CardItem({ card, onCopy, onEdit }: CardItemProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const styles = getStyles(isDark);
+  const pinAccent = isDark ? Colors.dark.tint : Colors.light.tint;
   const scale = useRef(new Animated.Value(1)).current;
 
   const billStatusMessage = useMemo(() => {
@@ -82,13 +83,13 @@ export default function CardItem({ card, onCopy, onEdit }: CardItemProps) {
       <Animated.View style={[styles.cardWrapper, { transform: [{ scale }] }]}>
         <LinearGradient colors={cardColors} style={styles.card}>
           <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-          {card.isPinned && (
-            <View style={styles.pinIconAbsolute}>
-              <Ionicons name="pin" size={20} color={Colors.dark.icon} />
-            </View>
-          )}
           <View style={styles.cardHeader}>
-            <Text style={styles.bankName}>{card.bankName.toUpperCase()}</Text>
+            <View style={styles.bankRow}>
+              {card.isPinned && (
+                <Ionicons name="star" size={14} color={pinAccent} accessibilityLabel="Pinned card" />
+              )}
+              <Text style={styles.bankName}>{card.bankName.toUpperCase()}</Text>
+            </View>
             <View style={styles.cardMetaColumn}>
               <View style={styles.cardTypeBadge}>
                 <Text style={styles.cardTypeText}>{card.cardType}</Text>
@@ -156,6 +157,11 @@ const getStyles = (isDark: boolean) =>
       justifyContent: 'space-between',
       alignItems: 'flex-start',
     },
+    bankRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
     cardMetaColumn: {
       alignItems: 'flex-end',
       gap: 6,
@@ -222,12 +228,6 @@ const getStyles = (isDark: boolean) =>
       fontSize: 14,
       fontWeight: '500',
       fontFamily: Fonts.mono,
-    },
-    pinIconAbsolute: {
-      position: 'absolute',
-      top: 12,
-      right: 10,
-      zIndex: 1,
     },
     accentBar: {
       position: 'absolute',
