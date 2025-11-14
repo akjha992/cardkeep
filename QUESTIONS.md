@@ -229,6 +229,10 @@ This document outlines questions and decisions needed before development begins.
 - **Question**: When long-press opens the edit form, should delete and pin actions live inside the form UI (e.g., footer buttons), or in the modal header? Should we still ask for confirmation before deleting?
 - **Action Required**: Form header
 
+### Q9.8: Delete All Cards Setting
+- **Question**: For the new “Delete all cards” option in Settings, should it simply show a confirmation dialog (with export reminder), or require any additional authentication (PIN/biometrics)? After deletion, should the app automatically take the user to the empty state?
+- **Action Required**: simply show a confirmation dialog (with export reminder), no pin required. Yes, take to empty state.
+
 ### Q8.2: Data Migration
 - **Question**: How should we handle data structure changes in future updates?
   - Option A: Version-based migration system

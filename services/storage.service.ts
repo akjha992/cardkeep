@@ -65,6 +65,15 @@ export async function setCards(cards: Card[]): Promise<void> {
   }
 }
 
+
+export async function deleteAllCards(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(CARDS_STORAGE_KEY);
+  } catch (error) {
+    console.error('Error clearing cards:', error);
+    throw new Error('Failed to delete cards. Please try again.');
+  }
+}
 /**
  * Update a card
  */

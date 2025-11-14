@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   StyleSheet,
   Text,
@@ -10,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
+import { router } from 'expo-router';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -17,6 +19,7 @@ import { useToast } from '@/components/ui/Toast';
 import { exportCardData } from '@/services/export.service';
 import { importCardData } from '@/services/import.service';
 import { getAppPreferences, updateAppPreferences } from '@/services/preferences.service';
+import { deleteAllCards } from '@/services/storage.service';
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
@@ -38,6 +41,7 @@ export default function SettingsScreen() {
   const [reminderWindowDays, setReminderWindowDays] = useState(5);
   const [isReminderLoading, setIsReminderLoading] = useState(true);
   const [isSavingReminder, setIsSavingReminder] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
 
   useEffect(() => {
     const loadPreferences = async () => {
@@ -209,6 +213,34 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleDeleteAllCards = () => {
+    if (isDeletingAll) return;
+    Alert.alert(
+      'Delete all cards?',
+      'This will remove every card from CardVault. Export your data first if you may need it later.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsDeletingAll(true);
+              await deleteAllCards();
+              showToast({ message: 'All cards deleted.', type: 'success' });
+              router.replace('/');
+            } catch (error) {
+              console.error('Failed to delete all cards:', error);
+              showToast({ message: 'Failed to delete cards.', type: 'error' });
+            } finally {
+              setIsDeletingAll(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
@@ -270,6 +302,26 @@ export default function SettingsScreen() {
           </View>
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
+        <View style={styles.deleteAllRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.deleteTitle}>Delete All Cards</Text>
+            <Text style={styles.deleteSubtitle}>
+              Permanently wipes your vault. Export a backup before continuing.
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.deleteButton, isDeletingAll && styles.deleteButtonDisabled]}
+            onPress={handleDeleteAllCards}
+            activeOpacity={0.8}
+            disabled={isDeletingAll}
+          >
+            {isDeletingAll ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Modal
@@ -603,5 +655,38 @@ const getStyles = (isDark: boolean) =>
       fontSize: 14,
       fontWeight: '600',
       color: isDark ? Colors.dark.tint : Colors.light.tint,
+    },
+    deleteAllRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 16,
+      paddingHorizontal: 12,
+      gap: 12,
+    },
+    deleteTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.destructive : Colors.light.destructive,
+    },
+    deleteSubtitle: {
+      marginTop: 4,
+      fontSize: 13,
+      color: isDark ? Colors.dark.icon : Colors.light.icon,
+    },
+    deleteButton: {
+      minWidth: 96,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 10,
+      backgroundColor: isDark ? Colors.dark.destructive : Colors.light.destructive,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    deleteButtonDisabled: {
+      opacity: 0.6,
+    },
+    deleteButtonText: {
+      color: '#fff',
+      fontWeight: '600',
     },
   });

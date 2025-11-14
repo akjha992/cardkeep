@@ -339,6 +339,27 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
+## Feature 14: Delete All Cards Setting
+
+**Goal**: Give users a Settings option to erase all saved cards, with a confirmation dialog reminding them to export first.
+
+### 14.1 Settings UI
+- [x] Add a "Delete All Cards" button to the Settings screen under Data Management.
+- [x] Show helper text recommending exporting data before deletion.
+
+### 14.2 Confirmation Flow
+- [x] On tap, present a confirmation modal that reminds users to export.
+- [x] Proceed only if the user confirms; otherwise dismiss.
+
+### 14.3 Deletion Logic
+- [x] Clear all stored cards via the storage service.
+- [x] Refresh the home list and reminders when deletion completes.
+- [x] Show success/failure toasts; on success navigate to the home empty state.
+
+**Review Checkpoint**: After confirmation, all cards are removed, the app shows the empty state, and users are reminded to export beforehand.
+
+---
+
 ## Feature 7: Polish & Animations
 
 **Goal**: App feels polished with smooth animations and refined UI.
