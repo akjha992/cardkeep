@@ -42,6 +42,7 @@ export default function AddCardForm({
   const [cvv, setCvv] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [bankName, setBankName] = useState('');
+  const [cardVariant, setCardVariant] = useState('');
   const [cardholderName, setCardholderName] = useState('');
   const [cardType, setCardType] = useState<CardType>('Credit');
   const [billGenerationDay, setBillGenerationDay] = useState('');
@@ -58,6 +59,7 @@ export default function AddCardForm({
     setExpiryDate(initialCard.expiryDate);
     setBankName(initialCard.bankName);
     setCardholderName(initialCard.cardholderName);
+    setCardVariant(initialCard.cardVariant ?? '');
     setCardType(initialCard.cardType);
     setBillGenerationDay(
       initialCard.cardType === 'Credit' && typeof initialCard.billGenerationDay === 'number'
@@ -118,6 +120,9 @@ export default function AddCardForm({
     if (!bankName.trim()) {
       newErrors.bankName = 'Bank name is required';
     }
+    if (!cardVariant.trim()) {
+      newErrors.cardVariant = 'Card variant is required';
+    }
 
     // Cardholder name validation
     if (!cardholderName.trim()) {
@@ -154,6 +159,7 @@ export default function AddCardForm({
             cvv: '',
             expiryDate: '',
             bankName: '',
+            cardVariant: '',
             cardholderName: '',
             cardType,
             billGenerationDay: null,
@@ -174,6 +180,7 @@ export default function AddCardForm({
         cvv: cvv.trim(),
         expiryDate: expiryDate.trim(),
         bankName: bankName.trim(),
+        cardVariant: cardVariant.trim(),
         cardholderName: cardholderName.trim(),
         cardType,
         billGenerationDay: cardType === 'Credit' ? parsedBillDay : null,
@@ -192,7 +199,8 @@ export default function AddCardForm({
   const styles = getStyles(isDark);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.container}>
+      <ScrollView style={styles.formScroll} contentContainerStyle={styles.content}>
       <Text style={styles.title}>{isEditMode ? 'Edit Card' : 'Add New Card'}</Text>
 
       {/* Card Type */}
@@ -299,6 +307,19 @@ export default function AddCardForm({
         )}
       </View>
 
+      {/* Card Variant */}
+      <View style={styles.section}>
+        <Text style={styles.label}>Card Variant *</Text>
+        <TextInput
+          style={[styles.input, errors.cardVariant && styles.inputError]}
+          value={cardVariant}
+          onChangeText={setCardVariant}
+          placeholder="e.g., Signature, Millennia"
+          placeholderTextColor={isDark ? '#666' : '#999'}
+        />
+        {errors.cardVariant && <Text style={styles.errorText}>{errors.cardVariant}</Text>}
+      </View>
+
       {/* Cardholder Name */}
       <View style={styles.section}>
         <Text style={styles.label}>Cardholder Name *</Text>
@@ -308,11 +329,11 @@ export default function AddCardForm({
           onChangeText={setCardholderName}
           placeholder="John Doe"
           placeholderTextColor={isDark ? '#666' : '#999'}
-      />
-      {errors.cardholderName && (
-        <Text style={styles.errorText}>{errors.cardholderName}</Text>
-      )}
-    </View>
+        />
+        {errors.cardholderName && (
+          <Text style={styles.errorText}>{errors.cardholderName}</Text>
+        )}
+      </View>
 
       {cardType === 'Credit' && (
         <View style={styles.section}>
@@ -335,8 +356,8 @@ export default function AddCardForm({
         </View>
       )}
 
-      {/* Buttons */}
-      <View style={styles.buttonContainer}>
+      </ScrollView>
+      <View style={styles.buttonBar}>
         <TouchableOpacity
           style={[styles.button, styles.cancelButton]}
           onPress={onCancel}
@@ -358,7 +379,7 @@ export default function AddCardForm({
           </Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -368,8 +389,12 @@ const getStyles = (isDark: boolean) =>
       flex: 1,
       backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
     },
+    formScroll: {
+      flex: 1,
+    },
     content: {
       padding: 20,
+      paddingBottom: 40,
     },
     title: {
       fontSize: 24,
@@ -428,10 +453,14 @@ const getStyles = (isDark: boolean) =>
       fontWeight: '600',
       color: isDark ? Colors.dark.tint : Colors.light.tint,
     },
-    buttonContainer: {
+    buttonBar: {
       flexDirection: 'row',
       gap: 10,
-      marginTop: 20,
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderTopWidth: 1,
+      borderTopColor: isDark ? Colors.dark.inputBorder : '#e0e0e0',
+      backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
     },
     button: {
       flex: 1,

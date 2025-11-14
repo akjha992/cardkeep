@@ -97,11 +97,16 @@ export default function CardItem({ card, onCopy, onEdit, accentIndex }: CardItem
             style={styles.accentBar}
           />
           <View style={styles.cardHeader}>
-            <View style={styles.bankRow}>
-              {card.isPinned && (
-                <Ionicons name="star" size={14} color={pinAccent} accessibilityLabel="Pinned card" />
-              )}
-              <Text style={styles.bankName}>{card.bankName.toUpperCase()}</Text>
+            <View style={styles.bankColumn}>
+              <View style={styles.bankRow}>
+                {card.isPinned && (
+                  <Ionicons name="star" size={14} color={pinAccent} accessibilityLabel="Pinned card" />
+                )}
+                <Text style={styles.bankName}>{card.bankName.toUpperCase()}</Text>
+              </View>
+              {card.cardVariant ? (
+                <Text style={styles.cardVariant}>{card.cardVariant.toUpperCase()}</Text>
+              ) : null}
             </View>
             <View style={styles.cardMetaColumn}>
               <View style={styles.cardTypeBadge}>
@@ -170,10 +175,19 @@ const getStyles = (isDark: boolean) =>
       justifyContent: 'space-between',
       alignItems: 'flex-start',
     },
+    bankColumn: {
+      flexDirection: 'column',
+      gap: 4,
+    },
     bankRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
+    },
+    cardVariant: {
+      color: Colors.dark.icon,
+      fontSize: 12,
+      letterSpacing: 0.5,
     },
     cardMetaColumn: {
       alignItems: 'flex-end',

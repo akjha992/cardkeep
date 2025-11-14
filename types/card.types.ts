@@ -8,6 +8,7 @@ export interface Card {
   cvv: string; // CVV (stored securely)
   expiryDate: string; // MM/YY format
   bankName: string; // Bank name
+  cardVariant?: string; // Specific card variant (e.g., Signature, Millennia)
   cardholderName: string; // Cardholder name
   cardType: 'Credit' | 'Debit'; // Card type (required)
   billGenerationDay?: number | null; // Optional bill generation day (1-31) for credit cards
