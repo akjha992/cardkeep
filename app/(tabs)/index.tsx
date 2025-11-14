@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Card } from '@/types/card.types';
-import { deleteCard, incrementUsage, togglePin } from '@/services/storage.service';
+import { incrementUsage } from '@/services/storage.service';
 import { getSortedCards, filterCards } from '@/services/cards.service';
 import CardList from '@/components/cards/CardList';
 import { Colors } from '@/constants/theme';
@@ -87,17 +87,6 @@ export default function HomeScreen() {
     router.push('/reminders');
   };
 
-  const handleDeleteCard = async (id: string) => {
-    try {
-      await deleteCard(id);
-      await loadCards(); // Refresh the list
-      showToast({ message: 'Card deleted successfully!', type: 'success' });
-    } catch (error) {
-      console.error('Error deleting card:', error);
-      showToast({ message: 'Failed to delete card.', type: 'error' });
-    }
-  };
-
   const handleCopyCard = async (id: string) => {
     try {
       await incrementUsage(id);
@@ -107,17 +96,6 @@ export default function HomeScreen() {
     } catch (error) {
       console.error('Error copying card:', error);
       showToast({ message: 'Failed to copy card number.', type: 'error' });
-    }
-  };
-
-  const handleTogglePinCard = async (id: string) => {
-    try {
-      await togglePin(id);
-      await loadCards(); // Refresh the list to reflect new pin status
-      showToast({ message: 'Card pin status updated!', type: 'success' });
-    } catch (error) {
-      console.error('Error toggling pin:', error);
-      showToast({ message: 'Failed to update card pin status.', type: 'error' });
     }
   };
 
@@ -143,9 +121,7 @@ export default function HomeScreen() {
         cards={filteredCards}
         onRefresh={handleRefresh}
         refreshing={refreshing}
-        onDeleteCard={handleDeleteCard}
         onCopyCard={handleCopyCard}
-        onTogglePinCard={handleTogglePinCard}
         onEditCard={handleEditCard}
       />
 

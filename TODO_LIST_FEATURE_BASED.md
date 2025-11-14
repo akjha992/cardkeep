@@ -318,6 +318,27 @@ This document organizes development by **independent features** that can be revi
 
 ---
 
+## Feature 13: Card Actions via Edit Screen
+
+**Goal**: Remove the card long-press action sheet and instead take users directly to the edit screen, where they can pin/unpin or delete the card.
+
+### 13.1 Navigation Changes
+- [x] Update `CardItem` long-press to immediately navigate to the edit modal (no intermediate menu).
+- [x] Remove the center-floating action sheet/Kebab UI from the card item.
+
+### 13.2 Edit Screen Actions
+- [x] Add a pin/unpin toggle inside the edit modal header (per Q9.7).
+- [x] Add a delete button in the edit modal header; delete still shows a confirmation alert.
+- [x] Ensure both actions refresh the card list after completion.
+
+### 13.3 UX Polish
+- [x] Indicate when the card is pinned inside the edit screen (e.g., icon or text).
+- [x] Provide toast feedback for pin/unpin and delete actions.
+
+**Review Checkpoint**: ✅ Long-pressing a card opens the edit screen where users can pin/unpin or delete the card via header controls, with appropriate confirmations and feedback.
+
+---
+
 ## Feature 7: Polish & Animations
 
 **Goal**: App feels polished with smooth animations and refined UI.

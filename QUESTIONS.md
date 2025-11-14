@@ -225,6 +225,10 @@ This document outlines questions and decisions needed before development begins.
 - **Question**: Do we need two reminder buckets (“Upcoming statements” vs “Payment due”) or just a single list? Should the UI explicitly show both dates (statement date and due date) for each card?
 - **Action Required**: Just one list, the info can state if the reminder is because of bill date or due date.
 
+### Q9.7: Delete/Pin in Edit Screen
+- **Question**: When long-press opens the edit form, should delete and pin actions live inside the form UI (e.g., footer buttons), or in the modal header? Should we still ask for confirmation before deleting?
+- **Action Required**: Form header
+
 ### Q8.2: Data Migration
 - **Question**: How should we handle data structure changes in future updates?
   - Option A: Version-based migration system
