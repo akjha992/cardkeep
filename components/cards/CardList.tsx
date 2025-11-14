@@ -56,6 +56,7 @@ const getStyles = (isDark: boolean) =>
   StyleSheet.create({
     listContent: {
       paddingVertical: 16,
+      paddingBottom: 140,
     },
     emptyContainer: {
       flex: 1,

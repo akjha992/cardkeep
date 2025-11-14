@@ -18,6 +18,7 @@ import * as Haptics from 'expo-haptics';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { getAppPreferences } from '@/services/preferences.service';
 import { CardReminder, getActiveReminders } from '@/services/reminders.service';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
@@ -83,7 +84,8 @@ export default function HomeScreen() {
     });
   };
 
-  const handleOpenReminders = () => {
+  const handleOpenReminders = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push('/reminders');
   };
 
@@ -103,9 +105,19 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.heroHeader}>
+        <Text style={styles.heroTitle}>My Cards</Text>
+        <Text style={styles.heroSubtitle}>Tap to copy, hold to edit or pin</Text>
+      </View>
       <SearchBar onSearch={setSearchQuery} />
       {reminderCount > 0 && reminderPreview && (
         <TouchableOpacity style={styles.reminderBanner} onPress={handleOpenReminders}>
+          <Ionicons
+            name="notifications"
+            size={20}
+            color={isDark ? Colors.dark.tint : Colors.light.tint}
+            style={styles.reminderIcon}
+          />
           <View style={{ flex: 1 }}>
             <Text style={styles.reminderBannerTitle}>
               {reminderCount} bill{reminderCount > 1 ? 's' : ''} coming up
@@ -114,7 +126,14 @@ export default function HomeScreen() {
               {reminderPreview.card.bankName} — {reminderPreview.label.toLowerCase()}
             </Text>
           </View>
-          <Text style={styles.reminderBannerAction}>View</Text>
+          <View style={styles.reminderCTA}>
+            <Text style={styles.reminderBannerAction}>View</Text>
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color={isDark ? Colors.dark.tint : Colors.light.tint}
+            />
+          </View>
         </TouchableOpacity>
       )}
       <CardList
@@ -160,14 +179,34 @@ const getStyles = (isDark: boolean) =>
       fontSize: 24,
       fontWeight: 'bold',
     },
+    heroHeader: {
+      paddingHorizontal: 20,
+      paddingTop: 8,
+      paddingBottom: 4,
+    },
+    heroTitle: {
+      fontSize: 24,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.text : Colors.light.text,
+    },
+    heroSubtitle: {
+      marginTop: 4,
+      fontSize: 13,
+      color: isDark ? Colors.dark.icon : Colors.light.icon,
+    },
     reminderBanner: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 12,
-      backgroundColor: isDark ? Colors.dark.cardBackground ?? '#1f1f1f' : '#f3f3f3',
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      backgroundColor: isDark ? 'rgba(46,125,255,0.25)' : '#E6F0FF',
       marginHorizontal: 20,
       marginBottom: 12,
-      borderRadius: 12,
+      borderRadius: 16,
+      gap: 12,
+    },
+    reminderIcon: {
+      marginRight: 4,
     },
     reminderBannerTitle: {
       color: isDark ? Colors.dark.text : Colors.light.text,
@@ -179,9 +218,13 @@ const getStyles = (isDark: boolean) =>
       color: isDark ? Colors.dark.icon : Colors.light.icon,
       fontSize: 12,
     },
+    reminderCTA: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
     reminderBannerAction: {
       color: isDark ? Colors.dark.tint : Colors.light.tint,
       fontWeight: '600',
-      marginLeft: 12,
     },
   });
