@@ -42,7 +42,14 @@ export default function CardList({
   return (
     <FlatList
       data={cards}
-      renderItem={({ item }) => <CardItem card={item} onCopy={onCopyCard} onEdit={onEditCard} />}
+      renderItem={({ item, index }) => (
+        <CardItem
+          card={item}
+          onCopy={onCopyCard}
+          onEdit={onEditCard}
+          accentIndex={index}
+        />
+      )}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.listContent}
       onRefresh={onRefresh}

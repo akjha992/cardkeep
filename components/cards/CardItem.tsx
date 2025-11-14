@@ -14,19 +14,16 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 48;
 const CARD_HEIGHT = CARD_WIDTH / CARD_ASPECT_RATIO;
 const ACCENT_GRADIENTS = [
-  ['#F2994A', '#F25F3A'],
-  ['#6DD5FA', '#439BEF'],
-  ['#A78BFA', '#7C3AED'],
-  ['#34D399', '#059669'],
-  ['#F472B6', '#EC4899'],
-  ['#FACC15', '#F97316'],
+  ['#F2994A', '#C56F2C'],
+  ['#6DD5FA', '#1D6AB8'],
+  ['#A78BFA', '#5932B4'],
+  ['#34D399', '#0F6C4F'],
+  ['#FACC15', '#C47F1D'],
 ];
 
-const pickAccentGradient = (seed: string) => {
-  const hash = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const index = hash % ACCENT_GRADIENTS.length;
-  const colors = ACCENT_GRADIENTS[index];
-  const reverse = hash % 2 === 0;
+const pickAccentGradient = (ordinal: number) => {
+  const colors = ACCENT_GRADIENTS[ordinal % ACCENT_GRADIENTS.length];
+  const reverse = ordinal % 2 === 1;
   return reverse ? [...colors].reverse() : colors;
 };
 
@@ -34,9 +31,10 @@ interface CardItemProps {
   card: Card;
   onCopy: (id: string) => void;
   onEdit: (card: Card) => void;
+  accentIndex: number;
 }
 
-export default function CardItem({ card, onCopy, onEdit }: CardItemProps) {
+export default function CardItem({ card, onCopy, onEdit, accentIndex }: CardItemProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const styles = getStyles(isDark);
@@ -51,10 +49,7 @@ export default function CardItem({ card, onCopy, onEdit }: CardItemProps) {
   }, [card.cardType, card.billGenerationDay]);
 
   const cardColors = card.color ? [card.color, card.color] : ['#2D2D2D', '#1A1A1A'];
-  const accentGradient = useMemo(
-    () => pickAccentGradient(`${card.bankName}-${card.id}`),
-    [card.bankName, card.id]
-  );
+  const accentGradient = useMemo(() => pickAccentGradient(accentIndex), [accentIndex]);
 
   const handlePress = async () => {
     const cleanedCardNumber = removeSpacesFromCardNumber(card.cardNumber);
@@ -95,7 +90,12 @@ export default function CardItem({ card, onCopy, onEdit }: CardItemProps) {
     >
       <Animated.View style={[styles.cardWrapper, { transform: [{ scale }] }]}>
         <LinearGradient colors={cardColors} style={styles.card}>
-          <LinearGradient colors={accentGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.accentBar} />
+          <LinearGradient
+            colors={accentGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.accentBar}
+          />
           <View style={styles.cardHeader}>
             <View style={styles.bankRow}>
               {card.isPinned && (
@@ -248,6 +248,6 @@ const getStyles = (isDark: boolean) =>
       left: 0,
       right: 0,
       height: 6,
-      opacity: 0.9,
+      opacity: 0.65,
     },
   });
