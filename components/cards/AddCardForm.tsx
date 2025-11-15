@@ -206,6 +206,18 @@ export default function AddCardForm({
   };
 
   const styles = getStyles(isDark, insets.bottom);
+  const usageInfo = isEditMode && initialCard ? (
+    <View style={styles.usagePanel}>
+      <Text style={styles.usageDetail}>
+        Copied {initialCard.usageCount} time{initialCard.usageCount === 1 ? '' : 's'}
+      </Text>
+      {initialCard.lastUsedAt ? (
+        <Text style={styles.usageSubdetail}>
+          Last used {new Date(initialCard.lastUsedAt).toLocaleString()}
+        </Text>
+      ) : null}
+    </View>
+  ) : null;
 
   return (
     <KeyboardAvoidingView
@@ -218,7 +230,10 @@ export default function AddCardForm({
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-      <Text style={styles.title}>{isEditMode ? 'Edit Card' : 'Add New Card'}</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>{isEditMode ? 'Edit Card' : 'Add New Card'}</Text>
+        {usageInfo}
+      </View>
 
       {/* Card Type */}
       <View style={styles.section}>
@@ -394,7 +409,6 @@ export default function AddCardForm({
           />
         </View>
       </View>
-
       </ScrollView>
       <View style={styles.buttonBar}>
         <TouchableOpacity
@@ -435,11 +449,16 @@ const getStyles = (isDark: boolean, bottomInset: number) =>
       padding: 20,
       paddingBottom: 40,
     },
+    titleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
     title: {
       fontSize: 24,
       fontWeight: 'bold',
       color: isDark ? Colors.dark.text : Colors.light.text,
-      marginBottom: 20,
     },
     section: {
       marginBottom: 20,
@@ -505,6 +524,24 @@ const getStyles = (isDark: boolean, bottomInset: number) =>
     switchSubtitle: {
       marginTop: 4,
       fontSize: 13,
+      color: isDark ? Colors.dark.icon : Colors.light.icon,
+    },
+    usagePanel: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: isDark ? Colors.dark.inputBorder : '#ddd',
+      backgroundColor: isDark ? Colors.dark.cardBackground ?? '#1a1a1a' : '#f5f5f5',
+      marginLeft: 12,
+    },
+    usageDetail: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: isDark ? Colors.dark.text : Colors.light.text,
+    },
+    usageSubdetail: {
+      fontSize: 10,
       color: isDark ? Colors.dark.icon : Colors.light.icon,
     },
     buttonBar: {

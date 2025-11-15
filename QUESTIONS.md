@@ -109,6 +109,35 @@ This document outlines questions and decisions needed before development begins.
 - **Recommendation**: Option A (always at top) - clearest UX
 - **Action Required**: Option A
 
+### Q4.4: Usage Visibility & Controls
+- **Question**: How should users view their card usage stats?
+  - Option A: Show usage counts on each card (e.g., badge or tooltip)
+  - Option B: Only show in the edit screen
+  - Option C: Dedicated “Usage & Sorting” section in Settings
+- **Action Required**: Only show in the edit screen 
+
+### Q4.5: Sorting Preferences
+- **Question**: Should users be able to change the sorting strategy?
+  - Option A: Usage-based (current default)
+  - Option B: Alphabetical by bank name
+  - Option C: Alphabetical by cardholder name
+  - Option D: Recently added (newest first)
+- **Action Required**: Yes, directly on the Home screen via a quick picker. Defaut to most frequently used.
+
+### Q4.6: Resetting Usage
+- **Question**: Should users be able to reset usage stats?
+  - Option A: Per-card reset (button on edit screen)
+  - Option B: Global reset in Settings
+  - Option C: Only via “Delete all cards”
+- **Action Required**: For now only via Delete all cards.
+
+### Q4.7: Usage Data in Backups
+- **Question**: Should usage counts/timestamps be included in export/import bundles?
+  - Option A: Yes (keeps ordering consistent across devices)
+  - Option B: No (usage is device-specific)
+  - Option C: Make it optional during export
+- **Action Required**: Make it optional during export
+
 ## 5. Copy Functionality
 
 ### Q5.1: Copy Options
