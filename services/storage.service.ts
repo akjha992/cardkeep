@@ -9,15 +9,33 @@ import CryptoJS from 'crypto-js';
 import { Card } from '@/types/card.types';
 
 const CARDS_STORAGE_KEY = 'cards_data';
-const STORAGE_SECRET_KEY = 'storage_encryption_key';
+const STORAGE_SECRET = 'cardvault_local_secret';
+const STORAGE_KEY = CryptoJS.SHA256(STORAGE_SECRET);
+const STORAGE_IV = CryptoJS.enc.Hex.parse('00000000000000000000000000000000');
 
 function encryptPayload(data: string): string {
-  return CryptoJS.AES.encrypt(data, STORAGE_SECRET_KEY).toString();
+  const encrypted = CryptoJS.AES.encrypt(data, STORAGE_KEY, {
+    iv: STORAGE_IV,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7,
+  });
+  return encrypted.ciphertext.toString(CryptoJS.enc.Base64);
 }
 
 function decryptPayload(payload: string): string {
-  const bytes = CryptoJS.AES.decrypt(payload, STORAGE_SECRET_KEY);
-  return bytes.toString(CryptoJS.enc.Utf8);
+  const cipherParams = CryptoJS.lib.CipherParams.create({
+    ciphertext: CryptoJS.enc.Base64.parse(payload),
+  });
+  const decrypted = CryptoJS.AES.decrypt(cipherParams, STORAGE_KEY, {
+    iv: STORAGE_IV,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7,
+  });
+  const plaintext = CryptoJS.enc.Utf8.stringify(decrypted);
+  if (!plaintext) {
+    throw new Error('Failed to decrypt payload');
+  }
+  return plaintext;
 }
 
 /**
@@ -51,15 +69,18 @@ export async function getCards(): Promise<Card[]> {
     if (!cardsJson) {
       return [];
     }
-    let decoded = cardsJson;
+    let rawCards: Card[];
     try {
-      decoded = decryptPayload(cardsJson);
-    } catch (error) {
-      // Assume legacy plain JSON and continue
-      decoded = cardsJson;
+      const decoded = decryptPayload(cardsJson);
+      rawCards = JSON.parse(decoded);
+    } catch (decryptError) {
+      try {
+        rawCards = JSON.parse(cardsJson);
+      } catch (plainError) {
+        console.error('Failed to parse stored cards:', decryptError ?? plainError);
+        throw plainError;
+      }
     }
-
-    const rawCards: Card[] = JSON.parse(decoded);
     return rawCards.map((card) => ({
       ...card,
       billGenerationDay:

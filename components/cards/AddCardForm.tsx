@@ -388,27 +388,28 @@ export default function AddCardForm({
         </View>
       )}
 
-      {/* Reminders Toggle */}
-      <View style={styles.section}>
-        <Text style={styles.label}>Reminders</Text>
-        <View style={styles.switchRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.switchTitle}>Receive reminders</Text>
-            <Text style={styles.switchSubtitle}>
-              Turn off to permanently skip statement, due, and renewal alerts.
-            </Text>
+      {!isEditMode && (
+        <View style={styles.section}>
+          <Text style={styles.label}>Reminders</Text>
+          <View style={styles.switchRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.switchTitle}>Receive reminders</Text>
+              <Text style={styles.switchSubtitle}>
+                Turn off to permanently skip statement, due, and renewal alerts.
+              </Text>
+            </View>
+            <Switch
+              value={!skipReminders}
+              onValueChange={(value) => setSkipReminders(!value)}
+              trackColor={{
+                false: isDark ? '#3A3A3A' : '#D1D1D1',
+                true: isDark ? Colors.dark.tint : Colors.light.tint,
+              }}
+              thumbColor="#fff"
+            />
           </View>
-          <Switch
-            value={!skipReminders}
-            onValueChange={(value) => setSkipReminders(!value)}
-            trackColor={{
-              false: isDark ? '#3A3A3A' : '#D1D1D1',
-              true: isDark ? Colors.dark.tint : Colors.light.tint,
-            }}
-            thumbColor="#fff"
-          />
         </View>
-      </View>
+      )}
       </ScrollView>
       <View style={styles.buttonBar}>
         <TouchableOpacity

@@ -12,7 +12,7 @@ import AddCardForm from '@/components/cards/AddCardForm';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Card } from '@/types/card.types';
-import { getCards, togglePin, deleteCard } from '@/services/storage.service';
+import { getCards, togglePin, deleteCard, updateCard } from '@/services/storage.service';
 import { useToast } from '@/components/ui/Toast';
 
 export default function AddCardScreen() {
@@ -22,13 +22,14 @@ export default function AddCardScreen() {
   const { showToast } = useToast();
   const params = useLocalSearchParams<{ id?: string }>();
 
-  const [initialCard, setInitialCard] = useState<Card | undefined>(undefined);
+  const [activeCard, setActiveCard] = useState<Card | undefined>(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(Boolean(params.id));
   const [isPinning, setIsPinning] = useState(false);
+  const [isUpdatingReminders, setIsUpdatingReminders] = useState(false);
 
   useEffect(() => {
     if (!params.id) {
-      setInitialCard(undefined);
+      setActiveCard(undefined);
       setIsLoading(false);
       return;
     }
@@ -42,7 +43,7 @@ export default function AddCardScreen() {
           router.back();
           return;
         }
-        setInitialCard(found);
+        setActiveCard(found);
       } catch (error) {
         console.error('Failed to load card for editing:', error);
         Alert.alert('Error', 'Failed to load card for editing.');
@@ -64,12 +65,12 @@ export default function AddCardScreen() {
   };
 
   const handleTogglePin = async () => {
-    if (!initialCard || isPinning) return;
+    if (!activeCard || isPinning) return;
     setIsPinning(true);
     try {
-      await togglePin(initialCard.id);
-      const updated = { ...initialCard, isPinned: !initialCard.isPinned };
-      setInitialCard(updated);
+      await togglePin(activeCard.id);
+      const updated = { ...activeCard, isPinned: !activeCard.isPinned };
+      setActiveCard(updated);
       showToast({
         message: updated.isPinned ? 'Card pinned.' : 'Card unpinned.',
         type: 'success',
@@ -83,7 +84,7 @@ export default function AddCardScreen() {
   };
 
   const confirmDelete = () => {
-    if (!initialCard) return;
+    if (!activeCard) return;
     Alert.alert(
       'Delete Card',
       'Are you sure you want to delete this card?',
@@ -94,7 +95,7 @@ export default function AddCardScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteCard(initialCard.id);
+              await deleteCard(activeCard.id);
               showToast({ message: 'Card deleted.', type: 'success' });
               router.back();
             } catch (error) {
@@ -108,8 +109,29 @@ export default function AddCardScreen() {
     );
   };
 
+  const handleToggleReminders = async () => {
+    if (!activeCard || isUpdatingReminders) return;
+    setIsUpdatingReminders(true);
+    try {
+      await updateCard(activeCard.id, { skipReminders: !activeCard.skipReminders });
+      const updated = { ...activeCard, skipReminders: !activeCard.skipReminders };
+      setActiveCard(updated);
+      showToast({
+        message: updated.skipReminders
+          ? 'Reminders disabled for this card.'
+          : 'Reminders enabled.',
+        type: 'success',
+      });
+    } catch (error) {
+      console.error('Failed to toggle reminders:', error);
+      showToast({ message: 'Failed to update reminders.', type: 'error' });
+    } finally {
+      setIsUpdatingReminders(false);
+    }
+  };
+
   const styles = getStyles(isDark);
-  const isEditMode = Boolean(params.id && initialCard);
+  const isEditMode = Boolean(params.id && activeCard);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -122,12 +144,24 @@ export default function AddCardScreen() {
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={styles.headerIconButton}
+              onPress={handleToggleReminders}
+              disabled={isUpdatingReminders}
+              accessibilityLabel="Toggle card reminders"
+            >
+              <Ionicons
+                name={activeCard?.skipReminders ? 'notifications-off-outline' : 'notifications-outline'}
+                size={20}
+                color={isDark ? Colors.dark.text : Colors.light.icon}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerIconButton}
               onPress={handleTogglePin}
               disabled={isPinning}
               accessibilityLabel="Pin or unpin card"
             >
               <Ionicons
-                name={initialCard?.isPinned ? 'star' : 'star-outline'}
+                name={activeCard?.isPinned ? 'star' : 'star-outline'}
                 size={20}
                 color={isDark ? Colors.dark.tint : Colors.light.tint}
               />
@@ -154,7 +188,7 @@ export default function AddCardScreen() {
         <AddCardForm
           onSave={handleSave}
           onCancel={handleCancel}
-          initialCard={initialCard}
+          initialCard={activeCard}
           mode={params.id ? 'edit' : 'add'}
         />
       )}
