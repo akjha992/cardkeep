@@ -134,6 +134,17 @@ export default function HomeScreen() {
           <Text style={styles.heroTitle}>My Cards</Text>
           <Text style={styles.heroSubtitle}>Tap to copy, hold to edit or pin</Text>
         </View>
+        <View style={styles.heroActions}>
+          <View style={styles.countChip}>
+            <Ionicons
+              name="card-outline"
+              size={14}
+              color={isDark ? Colors.dark.text : Colors.light.text}
+            />
+            <Text style={styles.countChipText}>
+              {cards.length} card{cards.length === 1 ? '' : 's'}
+            </Text>
+          </View>
         <TouchableOpacity style={styles.sortChip} onPress={() => setIsSortModalVisible(true)}>
           <Ionicons
             name="swap-vertical"
@@ -142,6 +153,7 @@ export default function HomeScreen() {
           />
           <Text style={styles.sortChipText}>{getSortLabel(sortOrder)}</Text>
         </TouchableOpacity>
+        </View>
       </View>
       <SearchBar onSearch={setSearchQuery} />
       {reminderCount > 0 && reminderPreview && (
@@ -261,6 +273,11 @@ const getStyles = (isDark: boolean) =>
       justifyContent: 'space-between',
       alignItems: 'center',
     },
+    heroActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
     heroTitle: {
       fontSize: 24,
       fontWeight: '600',
@@ -345,5 +362,21 @@ const getStyles = (isDark: boolean) =>
     },
     sortOptionTextSelected: {
       fontWeight: '600',
+    },
+    countChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: isDark ? Colors.dark.inputBorder : '#d0d0d0',
+      backgroundColor: isDark ? Colors.dark.cardBackground ?? '#1a1a1a' : '#fff',
+    },
+    countChipText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.text : Colors.light.text,
     },
   });
