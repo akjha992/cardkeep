@@ -38,15 +38,32 @@ export async function getSortedCards(): Promise<Card[]> {
  * @param query The search query string.
  * @returns A new array of Card objects that match the query.
  */
+function normalizeCardSearchFields(card: Card): string {
+  const pieces = [
+    card.bankName,
+    card.cardVariant,
+    card.cardholderName,
+    card.cardType,
+    card.cardNumber,
+  ]
+    .filter(Boolean)
+    .map((value) => String(value).toLowerCase());
+
+  return pieces.join(' ');
+}
+
 export function filterCards(cards: Card[], query: string): Card[] {
-  if (!query) {
+  if (!query.trim()) {
     return cards;
   }
 
-  const searchTerms = query.toLowerCase().split(' ').filter(term => term);
+  const searchTerms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
 
-  return cards.filter(card => {
-    const cardInfo = `${card.bankName.toLowerCase()} ${card.cardholderName.toLowerCase()}`;
-    return searchTerms.every(term => cardInfo.includes(term));
+  return cards.filter((card) => {
+    const haystack = normalizeCardSearchFields(card);
+    return searchTerms.every((term) => haystack.includes(term));
   });
 }
