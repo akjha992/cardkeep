@@ -4,6 +4,7 @@ import {
   Alert,
   Modal,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -31,6 +32,7 @@ export default function SettingsScreen() {
   const [exportPassword, setExportPassword] = useState('');
   const [exportPasswordError, setExportPasswordError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [includeUsageInExport, setIncludeUsageInExport] = useState(true);
 
   const [isImportModalVisible, setIsImportModalVisible] = useState(false);
   const [importPassword, setImportPassword] = useState('');
@@ -62,6 +64,7 @@ export default function SettingsScreen() {
   const openExportModal = () => {
     setExportPassword('');
     setExportPasswordError(null);
+     setIncludeUsageInExport(true);
     setIsExportModalVisible(true);
   };
 
@@ -82,7 +85,7 @@ export default function SettingsScreen() {
 
     try {
       setIsExporting(true);
-      await exportCardData(password);
+      await exportCardData(password, { includeUsage: includeUsageInExport });
       showToast({ message: 'Cards exported successfully.', type: 'success' });
       closeExportModal();
     } catch (error) {
@@ -341,6 +344,23 @@ export default function SettingsScreen() {
             <Text style={styles.modalSubtitle}>
               Enter a password. You will need it to import this backup later.
             </Text>
+            <View style={styles.modalSwitchRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.modalSwitchTitle}>Include usage & sorting</Text>
+                <Text style={styles.modalSwitchSubtitle}>
+                  Keeps copy counts and last-used info in the backup.
+                </Text>
+              </View>
+              <Switch
+                value={includeUsageInExport}
+                onValueChange={setIncludeUsageInExport}
+                trackColor={{
+                  false: isDark ? '#3A3A3A' : '#D1D1D1',
+                  true: isDark ? Colors.dark.tint : Colors.light.tint,
+                }}
+                thumbColor="#fff"
+              />
+            </View>
             <TextInput
               value={exportPassword}
               onChangeText={(value) => {
@@ -588,6 +608,22 @@ const getStyles = (isDark: boolean) =>
       marginTop: 8,
       fontSize: 14,
       color: isDark ? Colors.dark.icon : Colors.light.icon,
+    },
+    modalSwitchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginTop: 16,
+    },
+    modalSwitchTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.text : Colors.light.text,
+    },
+    modalSwitchSubtitle: {
+      fontSize: 12,
+      color: isDark ? Colors.dark.icon : Colors.light.icon,
+      marginTop: 4,
     },
     input: {
       marginTop: 20,

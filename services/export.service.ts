@@ -17,14 +17,23 @@ type ExportBundle = {
   hash: string;
 };
 
-async function createBundle(): Promise<{ bundle: ExportBundle; serialized: string }> {
+function sanitizeCard(card: Card): Card {
+  return {
+    ...card,
+    usageCount: 0,
+    lastUsedAt: 0,
+  };
+}
+
+async function createBundle(includeUsage: boolean): Promise<{ bundle: ExportBundle; serialized: string }> {
   const cards = await getCards();
-  const cardsJson = JSON.stringify(cards);
+  const cardsForExport = includeUsage ? cards : cards.map(sanitizeCard);
+  const cardsJson = JSON.stringify(cardsForExport);
   const hash = await generateHash(cardsJson);
   const bundle: ExportBundle = {
     version: EXPORT_VERSION,
     exportedAt: Date.now(),
-    cards,
+    cards: cardsForExport,
     hash,
   };
   return { bundle, serialized: JSON.stringify(bundle) };
@@ -62,12 +71,17 @@ async function shareFile(tempFileUri: string) {
   });
 }
 
-export async function exportCardData(password: string): Promise<void> {
+interface ExportOptions {
+  includeUsage?: boolean;
+}
+
+export async function exportCardData(password: string, options: ExportOptions = {}): Promise<void> {
   if (!password) {
     throw new Error('Password is required to export data.');
   }
 
-  const { serialized } = await createBundle();
+  const includeUsage = options.includeUsage ?? true;
+  const { serialized } = await createBundle(includeUsage);
   const encryptedPayload = await encrypt(serialized, password);
   const tempFileUri = `${FileSystem.cacheDirectory}${EXPORT_FILE_NAME}`;
 
