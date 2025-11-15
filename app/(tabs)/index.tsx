@@ -3,22 +3,34 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { StyleSheet, TouchableOpacity, Text, View } from 'react-native';
+import { Modal, StyleSheet, TouchableOpacity, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Card } from '@/types/card.types';
 import { incrementUsage } from '@/services/storage.service';
-import { getSortedCards, filterCards } from '@/services/cards.service';
+import { getSortedCards, filterCards, sortCards } from '@/services/cards.service';
 import CardList from '@/components/cards/CardList';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useToast } from '@/components/ui/Toast';
 import * as Haptics from 'expo-haptics';
 import { SearchBar } from '@/components/ui/SearchBar';
-import { getAppPreferences } from '@/services/preferences.service';
+import { getAppPreferences, updateAppPreferences, CardSortOrder } from '@/services/preferences.service';
 import { CardReminder, getActiveReminders } from '@/services/reminders.service';
 import { Ionicons } from '@expo/vector-icons';
+
+const SORT_OPTIONS: { value: CardSortOrder; label: string }[] = [
+  { value: 'usage', label: 'Most used' },
+  { value: 'bank', label: 'Bank name A-Z' },
+  { value: 'cardholder', label: 'Cardholder A-Z' },
+  { value: 'recent', label: 'Recently added' },
+];
+
+function getSortLabel(order: CardSortOrder) {
+  const match = SORT_OPTIONS.find((option) => option.value === order);
+  return match ? match.label : 'Most used';
+}
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
@@ -30,31 +42,22 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [reminderCount, setReminderCount] = useState(0);
   const [reminderPreview, setReminderPreview] = useState<CardReminder | null>(null);
-
-  const updateReminderInfo = useCallback(
-    async (cardsData: Card[]) => {
-      try {
-        const prefs = await getAppPreferences();
-        const reminders = await getActiveReminders(cardsData, prefs.reminderWindowDays);
-        setReminderCount(reminders.length);
-        setReminderPreview(reminders[0] ?? null);
-      } catch (error) {
-        console.error('Error loading reminders:', error);
-      }
-    },
-    []
-  );
+  const [sortOrder, setSortOrder] = useState<CardSortOrder>('usage');
+  const [isSortModalVisible, setIsSortModalVisible] = useState(false);
 
   const loadCards = useCallback(async () => {
     try {
-      const loadedCards = await getSortedCards();
+      const [loadedCards, prefs] = await Promise.all([getSortedCards(), getAppPreferences()]);
       setCards(loadedCards);
-      await updateReminderInfo(loadedCards);
+      setSortOrder(prefs.cardSortOrder ?? 'usage');
+      const reminders = await getActiveReminders(loadedCards, prefs.reminderWindowDays);
+      setReminderCount(reminders.length);
+      setReminderPreview(reminders[0] ?? null);
     } catch (error) {
       console.error('Error loading cards:', error);
       showToast({ message: 'Failed to load cards.', type: 'error' });
     }
-  }, [showToast, updateReminderInfo]);
+  }, [showToast]);
 
   // Load cards when screen comes into focus
   useFocusEffect(
@@ -66,6 +69,13 @@ export default function HomeScreen() {
   const filteredCards = useMemo(() => {
     return filterCards(cards, searchQuery);
   }, [cards, searchQuery]);
+
+  const displayCards = useMemo(() => {
+    const pinned = filteredCards.filter((card) => card.isPinned);
+    const unpinned = filteredCards.filter((card) => !card.isPinned);
+    const sort = (list: Card[]) => sortCards(list, sortOrder);
+    return [...sort(pinned), ...sort(unpinned)];
+  }, [filteredCards, sortOrder]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -101,13 +111,37 @@ export default function HomeScreen() {
     }
   };
 
+  const handleChangeSort = useCallback(
+    async (order: CardSortOrder) => {
+      setIsSortModalVisible(false);
+      setSortOrder(order);
+      try {
+        await updateAppPreferences({ cardSortOrder: order });
+      } catch (error) {
+        console.error('Failed to save sort order:', error);
+        showToast({ message: 'Unable to save sort preference.', type: 'error' });
+      }
+    },
+    [showToast]
+  );
+
   const styles = getStyles(isDark);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.heroHeader}>
-        <Text style={styles.heroTitle}>My Cards</Text>
-        <Text style={styles.heroSubtitle}>Tap to copy, hold to edit or pin</Text>
+        <View>
+          <Text style={styles.heroTitle}>My Cards</Text>
+          <Text style={styles.heroSubtitle}>Tap to copy, hold to edit or pin</Text>
+        </View>
+        <TouchableOpacity style={styles.sortChip} onPress={() => setIsSortModalVisible(true)}>
+          <Ionicons
+            name="swap-vertical"
+            size={16}
+            color={isDark ? Colors.dark.text : Colors.light.text}
+          />
+          <Text style={styles.sortChipText}>{getSortLabel(sortOrder)}</Text>
+        </TouchableOpacity>
       </View>
       <SearchBar onSearch={setSearchQuery} />
       {reminderCount > 0 && reminderPreview && (
@@ -137,7 +171,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       )}
       <CardList
-        cards={filteredCards}
+        cards={displayCards}
         onRefresh={handleRefresh}
         refreshing={refreshing}
         onCopyCard={handleCopyCard}
@@ -147,6 +181,46 @@ export default function HomeScreen() {
       <TouchableOpacity style={styles.fab} onPress={handleAddCard}>
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
+      <Modal
+        visible={isSortModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsSortModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setIsSortModalVisible(false)}
+          />
+          <View
+            style={[
+              styles.sortSheet,
+              { backgroundColor: isDark ? Colors.dark.cardBackground ?? '#1d1d1d' : '#fff' },
+            ]}
+          >
+            {SORT_OPTIONS.map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  styles.sortOption,
+                  sortOrder === option.value && styles.sortOptionSelected,
+                ]}
+                onPress={() => handleChangeSort(option.value)}
+              >
+                <Text
+                  style={[
+                    styles.sortOptionText,
+                    sortOrder === option.value && styles.sortOptionTextSelected,
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -183,6 +257,9 @@ const getStyles = (isDark: boolean) =>
       paddingHorizontal: 20,
       paddingTop: 8,
       paddingBottom: 4,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
     heroTitle: {
       fontSize: 24,
@@ -193,6 +270,22 @@ const getStyles = (isDark: boolean) =>
       marginTop: 4,
       fontSize: 13,
       color: isDark ? Colors.dark.icon : Colors.light.icon,
+    },
+    sortChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: isDark ? Colors.dark.inputBorder : '#d0d0d0',
+      backgroundColor: isDark ? Colors.dark.cardBackground ?? '#1a1a1a' : '#fff',
+    },
+    sortChipText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.text : Colors.light.text,
     },
     reminderBanner: {
       flexDirection: 'row',
@@ -225,6 +318,32 @@ const getStyles = (isDark: boolean) =>
     },
     reminderBannerAction: {
       color: isDark ? Colors.dark.tint : Colors.light.tint,
+      fontWeight: '600',
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+      justifyContent: 'flex-end',
+    },
+    sortSheet: {
+      margin: 20,
+      borderRadius: 16,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+    },
+    sortOption: {
+      paddingVertical: 12,
+    },
+    sortOptionSelected: {
+      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+      borderRadius: 12,
+      paddingHorizontal: 8,
+    },
+    sortOptionText: {
+      fontSize: 14,
+      color: isDark ? Colors.dark.text : Colors.light.text,
+    },
+    sortOptionTextSelected: {
       fontWeight: '600',
     },
   });

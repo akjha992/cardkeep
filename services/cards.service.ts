@@ -1,5 +1,6 @@
 import { Card } from '@/types/card.types';
 import { getCards as getStorageCards } from './storage.service';
+import { CardSortOrder } from './preferences.service';
 
 /**
  * Retrieves all cards from storage and applies sorting logic.
@@ -10,25 +11,41 @@ import { getCards as getStorageCards } from './storage.service';
 export async function getSortedCards(): Promise<Card[]> {
   const allCards = await getStorageCards();
 
-  // Separate pinned and unpinned cards
+  // Default: usage sort
   const pinnedCards = allCards.filter(card => card.isPinned);
   const unpinnedCards = allCards.filter(card => !card.isPinned);
 
-  // Sort pinned cards: by lastUsedAt (most recent first)
   pinnedCards.sort((a, b) => b.lastUsedAt - a.lastUsedAt);
+  unpinnedCards.sort(sortByUsage);
 
-  // Sort unpinned cards:
-  // 1. By usageCount (descending)
-  // 2. Then by lastUsedAt (most recent first)
-  unpinnedCards.sort((a, b) => {
-    if (a.usageCount !== b.usageCount) {
-      return b.usageCount - a.usageCount; // Higher usage first
-    }
-    return b.lastUsedAt - a.lastUsedAt; // More recent first
-  });
-
-  // Combine pinned and sorted unpinned cards
   return [...pinnedCards, ...unpinnedCards];
+}
+
+export function sortCards(cards: Card[], order: CardSortOrder): Card[] {
+  const copy = [...cards];
+  switch (order) {
+    case 'bank':
+      copy.sort((a, b) => a.bankName.localeCompare(b.bankName));
+      break;
+    case 'cardholder':
+      copy.sort((a, b) => a.cardholderName.localeCompare(b.cardholderName));
+      break;
+    case 'recent':
+      copy.sort((a, b) => b.createdAt - a.createdAt);
+      break;
+    case 'usage':
+    default:
+      copy.sort(sortByUsage);
+      break;
+  }
+  return copy;
+}
+
+function sortByUsage(a: Card, b: Card) {
+  if (a.usageCount !== b.usageCount) {
+    return b.usageCount - a.usageCount;
+  }
+  return b.lastUsedAt - a.lastUsedAt;
 }
 
 /**

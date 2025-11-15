@@ -2,12 +2,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SETTINGS_KEY = 'app_preferences';
 
+export type CardSortOrder = 'usage' | 'bank' | 'cardholder' | 'recent';
+
 export interface AppPreferences {
   reminderWindowDays: number;
+  showCardAccents: boolean;
+  cardSortOrder: CardSortOrder;
 }
 
 const DEFAULT_PREFERENCES: AppPreferences = {
   reminderWindowDays: 5,
+  showCardAccents: true,
+  cardSortOrder: 'usage',
 };
 
 async function readRawPreferences(): Promise<Partial<AppPreferences>> {
