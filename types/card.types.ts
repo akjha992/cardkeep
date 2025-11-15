@@ -12,6 +12,7 @@ export interface Card {
   cardholderName: string; // Cardholder name
   cardType: 'Credit' | 'Debit'; // Card type (required)
   billGenerationDay?: number | null; // Optional bill generation day (1-31) for credit cards
+  skipReminders?: boolean; // If true, do not generate reminders for this card
   usageCount: number; // Number of times card number is copied
   isPinned: boolean; // Whether card is pinned
   createdAt: number; // Creation timestamp (Unix timestamp)

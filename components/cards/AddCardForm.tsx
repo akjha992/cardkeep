@@ -15,6 +15,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -50,6 +51,7 @@ export default function AddCardForm({
   const [cardholderName, setCardholderName] = useState('');
   const [cardType, setCardType] = useState<CardType>('Credit');
   const [billGenerationDay, setBillGenerationDay] = useState('');
+  const [skipReminders, setSkipReminders] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -64,6 +66,7 @@ export default function AddCardForm({
     setBankName(initialCard.bankName);
     setCardholderName(initialCard.cardholderName);
     setCardVariant(initialCard.cardVariant ?? '');
+    setSkipReminders(Boolean(initialCard.skipReminders));
     setCardType(initialCard.cardType);
     setBillGenerationDay(
       initialCard.cardType === 'Credit' && typeof initialCard.billGenerationDay === 'number'
@@ -167,6 +170,7 @@ export default function AddCardForm({
             cardholderName: '',
             cardType,
             billGenerationDay: null,
+            skipReminders: false,
             usageCount: 0,
             isPinned: false,
             createdAt: now,
@@ -188,6 +192,7 @@ export default function AddCardForm({
         cardholderName: cardholderName.trim(),
         cardType,
         billGenerationDay: cardType === 'Credit' ? parsedBillDay : null,
+        skipReminders,
       };
 
       await saveCard(newCard);
@@ -368,6 +373,28 @@ export default function AddCardForm({
         </View>
       )}
 
+      {/* Reminders Toggle */}
+      <View style={styles.section}>
+        <Text style={styles.label}>Reminders</Text>
+        <View style={styles.switchRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.switchTitle}>Receive reminders</Text>
+            <Text style={styles.switchSubtitle}>
+              Turn off to permanently skip statement, due, and renewal alerts.
+            </Text>
+          </View>
+          <Switch
+            value={!skipReminders}
+            onValueChange={(value) => setSkipReminders(!value)}
+            trackColor={{
+              false: isDark ? '#3A3A3A' : '#D1D1D1',
+              true: isDark ? Colors.dark.tint : Colors.light.tint,
+            }}
+            thumbColor="#fff"
+          />
+        </View>
+      </View>
+
       </ScrollView>
       <View style={styles.buttonBar}>
         <TouchableOpacity
@@ -464,6 +491,21 @@ const getStyles = (isDark: boolean, bottomInset: number) =>
     cardTypeTextActive: {
       fontWeight: '600',
       color: isDark ? Colors.dark.tint : Colors.light.tint,
+    },
+    switchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    switchTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.text : Colors.light.text,
+    },
+    switchSubtitle: {
+      marginTop: 4,
+      fontSize: 13,
+      color: isDark ? Colors.dark.icon : Colors.light.icon,
     },
     buttonBar: {
       flexDirection: 'row',

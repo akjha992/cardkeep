@@ -84,6 +84,10 @@ function getFutureRemindersForCard(
   card: Card,
   today: Date
 ): Array<{ reason: ReminderReason; date: Date }> {
+  if (card.skipReminders) {
+    return [];
+  }
+
   if (card.cardType !== 'Credit' || typeof card.billGenerationDay !== 'number') {
     return [];
   }

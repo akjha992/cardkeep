@@ -7,7 +7,7 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useToast } from '@/components/ui/Toast';
 import { Card } from '@/types/card.types';
-import { getCards } from '@/services/storage.service';
+import { getCards, updateCard } from '@/services/storage.service';
 import { getAppPreferences } from '@/services/preferences.service';
 import {
   CardReminder,
@@ -85,6 +85,20 @@ export default function RemindersScreen() {
     </View>
   );
 
+  const handleSkipRemindersForCard = async (card: Card) => {
+    try {
+      await updateCard(card.id, { skipReminders: true });
+      showToast({
+        message: 'Reminders disabled. Enable again from the edit screen.',
+        type: 'info',
+      });
+      await loadReminders();
+    } catch (error) {
+      console.error('Failed to skip reminders:', error);
+      showToast({ message: 'Failed to update reminders.', type: 'error' });
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.headerRow}>
@@ -100,7 +114,12 @@ export default function RemindersScreen() {
         data={reminders}
         keyExtractor={(item) => item.key}
         renderItem={({ item }) => (
-          <ReminderCard reminder={item} isDark={isDark} onDismiss={() => handleDismiss(item)} />
+          <ReminderCard
+            reminder={item}
+            isDark={isDark}
+            onDismiss={() => handleDismiss(item)}
+            onSkip={() => handleSkipRemindersForCard(item.card)}
+          />
         )}
         ListEmptyComponent={!loading ? emptyState : null}
         contentContainerStyle={reminders.length === 0 ? styles.emptyContent : undefined}
@@ -114,10 +133,12 @@ function ReminderCard({
   reminder,
   isDark,
   onDismiss,
+  onSkip,
 }: {
   reminder: CardReminder;
   isDark: boolean;
   onDismiss: () => void;
+  onSkip: () => void;
 }) {
   const styles = reminderCardStyles(isDark);
   return (
@@ -129,9 +150,14 @@ function ReminderCard({
         <Text style={styles.subreason}>{reminder.sublabel}</Text>
         <Text style={styles.timing}>In {reminder.daysUntil} day(s)</Text>
       </View>
-      <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
-        <Text style={styles.dismissText}>Dismiss</Text>
-      </TouchableOpacity>
+      <View style={styles.actionsColumn}>
+        <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
+          <Text style={styles.dismissText}>Dismiss</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
+          <Text style={styles.skipText}>Skip All</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -232,8 +258,12 @@ const reminderCardStyles = (isDark: boolean) =>
       fontSize: 12,
       color: isDark ? Colors.dark.icon : Colors.light.icon,
     },
-    dismissButton: {
+    actionsColumn: {
       marginLeft: 12,
+      gap: 8,
+      alignItems: 'flex-end',
+    },
+    dismissButton: {
       paddingVertical: 6,
       paddingHorizontal: 12,
       borderRadius: 8,
@@ -243,6 +273,18 @@ const reminderCardStyles = (isDark: boolean) =>
       fontSize: 12,
       fontWeight: '600',
       color: isDark ? Colors.dark.text : Colors.light.text,
+    },
+    skipButton: {
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: isDark ? Colors.dark.destructive : Colors.light.destructive,
+    },
+    skipText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.destructive : Colors.light.destructive,
     },
   });
   const handleResetDismissals = async () => {
