@@ -160,7 +160,7 @@ const getStyles = (isDark: boolean) =>
     fab: {
       position: 'absolute',
       right: 20,
-      bottom: 80, // Increased bottom margin to avoid tab bar
+      bottom: 60, // Slightly closer to navigation for reachability
       width: 56,
       height: 56,
       borderRadius: 28,

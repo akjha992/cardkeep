@@ -11,6 +11,8 @@ import { formatCardNumber } from '@/utils/formatters';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,6 +22,7 @@ import {
 } from 'react-native';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface AddCardFormProps {
   onSave: () => void;
@@ -37,6 +40,7 @@ export default function AddCardForm({
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const isEditMode = mode === 'edit' || Boolean(initialCard);
+  const insets = useSafeAreaInsets();
 
   const [cardNumber, setCardNumber] = useState('');
   const [cvv, setCvv] = useState('');
@@ -196,11 +200,19 @@ export default function AddCardForm({
     }
   };
 
-  const styles = getStyles(isDark);
+  const styles = getStyles(isDark, insets.bottom);
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.formScroll} contentContainerStyle={styles.content}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
+    >
+      <ScrollView
+        style={styles.formScroll}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
       <Text style={styles.title}>{isEditMode ? 'Edit Card' : 'Add New Card'}</Text>
 
       {/* Card Type */}
@@ -379,11 +391,11 @@ export default function AddCardForm({
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
-const getStyles = (isDark: boolean) =>
+const getStyles = (isDark: boolean, bottomInset: number) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -457,7 +469,8 @@ const getStyles = (isDark: boolean) =>
       flexDirection: 'row',
       gap: 10,
       paddingHorizontal: 20,
-      paddingVertical: 16,
+      paddingTop: 16,
+      paddingBottom: Math.max(bottomInset, 16),
       borderTopWidth: 1,
       borderTopColor: isDark ? Colors.dark.inputBorder : '#e0e0e0',
       backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
