@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View, RefreshControl } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -108,7 +109,7 @@ export default function RemindersScreen() {
         </TouchableOpacity>
       </View>
       <Text style={styles.subtitle}>
-        Showing statements and payments within the next {reminderWindowDays} day(s)
+        Upcoming statements, payments, and renewals over the next {reminderWindowDays} day(s)
       </Text>
       <FlatList
         data={reminders}
@@ -143,21 +144,35 @@ function ReminderCard({
   const styles = reminderCardStyles(isDark);
   return (
     <View style={styles.card}>
-      <View style={{ flex: 1 }}>
+      <View style={styles.cardHeader}>
         <Text style={styles.cardTitle}>{reminder.card.bankName}</Text>
-        <Text style={styles.cardSubtitle}>{reminder.card.cardholderName}</Text>
-        <Text style={styles.reason}>{reminder.label}</Text>
-        <Text style={styles.subreason}>{reminder.sublabel}</Text>
-        <Text style={styles.timing}>In {reminder.daysUntil} day(s)</Text>
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={styles.iconButtonAccent}
+            onPress={onSkip}
+            accessibilityLabel="Skip all reminders for this card"
+          >
+            <Ionicons
+              name="notifications-off-outline"
+              size={16}
+              color={isDark ? Colors.dark.destructive : Colors.light.destructive}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={onDismiss}
+            accessibilityLabel="Dismiss reminder"
+          >
+            <Ionicons name="close" size={16} color={isDark ? '#fff' : '#000'} />
+          </TouchableOpacity>
+        </View>
       </View>
-      <View style={styles.actionsColumn}>
-        <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
-          <Text style={styles.dismissText}>Dismiss</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
-          <Text style={styles.skipText}>Skip All</Text>
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.cardSubtitle}>
+        {[reminder.card.cardVariant, reminder.card.cardholderName].filter(Boolean).join(' • ')}
+      </Text>
+      <Text style={styles.reason}>{reminder.label}</Text>
+      <Text style={styles.subreason}>{reminder.sublabel}</Text>
+      <Text style={styles.timing}>In {reminder.daysUntil} day(s)</Text>
     </View>
   );
 }
@@ -183,8 +198,8 @@ const getStyles = (isDark: boolean) =>
     },
     subtitle: {
       marginTop: 6,
-      fontSize: 14,
-      color: isDark ? Colors.dark.icon : Colors.light.icon,
+      fontSize: 13,
+      color: isDark ? 'rgba(235,235,245,0.6)' : Colors.light.icon,
       marginBottom: 16,
     },
     emptyState: {
@@ -226,21 +241,29 @@ const reminderCardStyles = (isDark: boolean) =>
       borderRadius: 16,
       padding: 16,
       marginBottom: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
       shadowColor: '#000',
       shadowOpacity: isDark ? 0.2 : 0.1,
       shadowRadius: 8,
       shadowOffset: { width: 0, height: 4 },
       elevation: 4,
     },
+    cardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
     cardTitle: {
       fontSize: 18,
       fontWeight: '600',
       color: isDark ? Colors.dark.text : Colors.light.text,
     },
-    cardSubtitle: {
+    cardVariant: {
       fontSize: 14,
+      color: isDark ? Colors.dark.icon : Colors.light.icon,
+      marginBottom: 2,
+    },
+    cardSubtitle: {
+      fontSize: 13,
       color: isDark ? Colors.dark.icon : Colors.light.icon,
       marginBottom: 8,
     },
@@ -258,33 +281,26 @@ const reminderCardStyles = (isDark: boolean) =>
       fontSize: 12,
       color: isDark ? Colors.dark.icon : Colors.light.icon,
     },
-    actionsColumn: {
-      marginLeft: 12,
+    actionsRow: {
+      flexDirection: 'row',
       gap: 8,
-      alignItems: 'flex-end',
     },
-    dismissButton: {
-      paddingVertical: 6,
-      paddingHorizontal: 12,
-      borderRadius: 8,
+    iconButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
       backgroundColor: isDark ? Colors.dark.inputBackground : '#E6E6E6',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
-    dismissText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: isDark ? Colors.dark.text : Colors.light.text,
-    },
-    skipButton: {
-      paddingVertical: 6,
-      paddingHorizontal: 12,
-      borderRadius: 8,
+    iconButtonAccent: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
       borderWidth: 1,
       borderColor: isDark ? Colors.dark.destructive : Colors.light.destructive,
-    },
-    skipText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: isDark ? Colors.dark.destructive : Colors.light.destructive,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });
   const handleResetDismissals = async () => {
