@@ -25,7 +25,7 @@ export function sortCards(cards: Card[], order: CardSortOrder): Card[] {
   const copy = [...cards];
   switch (order) {
     case 'bank':
-      copy.sort((a, b) => a.bankName.localeCompare(b.bankName));
+      copy.sort((a, b) => compareCardNames(a, b));
       break;
     case 'cardholder':
       copy.sort((a, b) => a.cardholderName.localeCompare(b.cardholderName));
@@ -46,6 +46,14 @@ function sortByUsage(a: Card, b: Card) {
     return b.usageCount - a.usageCount;
   }
   return b.lastUsedAt - a.lastUsedAt;
+}
+
+function getCardName(card: Card) {
+  return [card.bankName, card.cardVariant].filter(Boolean).join(' ').trim();
+}
+
+function compareCardNames(a: Card, b: Card) {
+  return getCardName(a).localeCompare(getCardName(b));
 }
 
 /**

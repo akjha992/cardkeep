@@ -23,7 +23,7 @@ import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 const SORT_OPTIONS: { value: CardSortOrder; label: string }[] = [
   { value: 'usage', label: 'Most used' },
-  { value: 'bank', label: 'Bank name A-Z' },
+  { value: 'bank', label: 'Card name A-Z' },
   { value: 'cardholder', label: 'Cardholder A-Z' },
   { value: 'recent', label: 'Recently added' },
 ];
