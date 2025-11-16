@@ -18,7 +18,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SORT_OPTIONS: { value: CardSortOrder; label: string }[] = [
   { value: 'usage', label: 'Most used' },
@@ -35,6 +35,7 @@ function getSortLabel(order: CardSortOrder) {
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const insets = useSafeAreaInsets();
   const { showToast } = useToast();
 
   const [cards, setCards] = useState<Card[]>([]);
@@ -127,6 +128,8 @@ export default function HomeScreen() {
 
   const styles = getStyles(isDark);
 
+  const bottomSheetInset = Math.max(insets.bottom, 16);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.heroHeader}>
@@ -199,7 +202,7 @@ export default function HomeScreen() {
         animationType="fade"
         onRequestClose={() => setIsSortModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={[styles.modalOverlay, { paddingBottom: bottomSheetInset }]}>
           <TouchableOpacity
             style={StyleSheet.absoluteFill}
             activeOpacity={1}
@@ -342,7 +345,7 @@ const getStyles = (isDark: boolean) =>
     },
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.4)',
+      backgroundColor: 'rgba(0,0,0,0.55)',
       justifyContent: 'flex-end',
     },
     sortSheet: {
