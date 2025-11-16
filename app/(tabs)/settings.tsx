@@ -21,12 +21,14 @@ import { exportCardData } from '@/services/export.service';
 import { importCardData } from '@/services/import.service';
 import { getAppPreferences, updateAppPreferences } from '@/services/preferences.service';
 import { deleteAllCards } from '@/services/storage.service';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const styles = getStyles(isDark);
   const { showToast } = useToast();
+  const { bottomSpacing } = useSafeSpacing();
 
   const [isExportModalVisible, setIsExportModalVisible] = useState(false);
   const [exportPassword, setExportPassword] = useState('');
@@ -256,7 +258,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { paddingBottom: bottomSpacing }]} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Text style={styles.title}>Settings</Text>
         <Text style={styles.subtitle}>Manage your card data</Text>
@@ -355,7 +357,7 @@ export default function SettingsScreen() {
         transparent
         onRequestClose={closeExportModal}
       >
-        <View style={styles.modalOverlay}>
+        <View style={[styles.modalOverlay, { paddingBottom: bottomSpacing }]}>
           <View
             style={[
               styles.modalContent,
@@ -446,7 +448,7 @@ export default function SettingsScreen() {
         transparent
         onRequestClose={closeImportModal}
       >
-        <View style={styles.modalOverlay}>
+        <View style={[styles.modalOverlay, { paddingBottom: bottomSpacing }]}>
           <View
             style={[
               styles.modalContent,
