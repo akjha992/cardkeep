@@ -2,23 +2,23 @@
  * Main Cards List Screen
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
-import { Modal, StyleSheet, TouchableOpacity, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
-import { Card } from '@/types/card.types';
-import { incrementUsage } from '@/services/storage.service';
-import { getSortedCards, filterCards, sortCards } from '@/services/cards.service';
 import CardList from '@/components/cards/CardList';
+import { SearchBar } from '@/components/ui/SearchBar';
+import { useToast } from '@/components/ui/Toast';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useToast } from '@/components/ui/Toast';
-import * as Haptics from 'expo-haptics';
-import { SearchBar } from '@/components/ui/SearchBar';
-import { getAppPreferences, updateAppPreferences, CardSortOrder } from '@/services/preferences.service';
+import { filterCards, getSortedCards, sortCards } from '@/services/cards.service';
+import { CardSortOrder, getAppPreferences, updateAppPreferences } from '@/services/preferences.service';
 import { CardReminder, getActiveReminders } from '@/services/reminders.service';
+import { incrementUsage } from '@/services/storage.service';
+import { Card } from '@/types/card.types';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const SORT_OPTIONS: { value: CardSortOrder; label: string }[] = [
   { value: 'usage', label: 'Most used' },
@@ -133,7 +133,6 @@ export default function HomeScreen() {
         <View>
           <Text style={styles.heroTitle}>My Cards</Text>
           <Text style={styles.heroSubtitle}>Tap to copy, hold to edit or pin</Text>
-          <Text style={styles.offlineTagline}>Secure vault. Data never leaves your device.</Text>
         </View>
         <View style={styles.heroActions}>
           <View style={styles.countChip}>
@@ -291,11 +290,6 @@ const getStyles = (isDark: boolean) =>
       marginTop: 4,
       fontSize: 13,
       color: isDark ? Colors.dark.icon : Colors.light.icon,
-    },
-    offlineTagline: {
-      marginTop: 8,
-      fontSize: 11,
-      color: isDark ? 'rgba(235,235,245,0.7)' : '#5e5e5e',
     },
     sortChip: {
       flexDirection: 'row',
