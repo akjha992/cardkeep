@@ -19,7 +19,6 @@ import { SearchBar } from '@/components/ui/SearchBar';
 import { getAppPreferences, updateAppPreferences, CardSortOrder } from '@/services/preferences.service';
 import { CardReminder, getActiveReminders } from '@/services/reminders.service';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 const SORT_OPTIONS: { value: CardSortOrder; label: string }[] = [
   { value: 'usage', label: 'Most used' },
@@ -36,7 +35,6 @@ function getSortLabel(order: CardSortOrder) {
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { bottomSpacing } = useSafeSpacing();
   const { showToast } = useToast();
 
   const [cards, setCards] = useState<Card[]>([]);
@@ -127,12 +125,10 @@ export default function HomeScreen() {
     [showToast]
   );
 
-  const bottomSheetInset = bottomSpacing + 20;
-  const fabBottomOffset = bottomSpacing + 44;
   const styles = getStyles(isDark);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.heroHeader}>
         <View>
           <Text style={styles.heroTitle}>My Cards</Text>
@@ -150,14 +146,14 @@ export default function HomeScreen() {
               {cards.length} card{cards.length === 1 ? '' : 's'}
             </Text>
           </View>
-          <TouchableOpacity style={styles.sortChip} onPress={() => setIsSortModalVisible(true)}>
-            <Ionicons
-              name="swap-vertical"
-              size={16}
-              color={isDark ? Colors.dark.text : Colors.light.text}
-            />
-            <Text style={styles.sortChipText}>{getSortLabel(sortOrder)}</Text>
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.sortChip} onPress={() => setIsSortModalVisible(true)}>
+          <Ionicons
+            name="swap-vertical"
+            size={16}
+            color={isDark ? Colors.dark.text : Colors.light.text}
+          />
+          <Text style={styles.sortChipText}>{getSortLabel(sortOrder)}</Text>
+        </TouchableOpacity>
         </View>
       </View>
       <SearchBar onSearch={setSearchQuery} />
@@ -195,7 +191,7 @@ export default function HomeScreen() {
         onEditCard={handleEditCard}
       />
 
-      <TouchableOpacity style={[styles.fab, { bottom: fabBottomOffset }]} onPress={handleAddCard}>
+      <TouchableOpacity style={styles.fab} onPress={handleAddCard}>
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
       <Modal
@@ -204,7 +200,7 @@ export default function HomeScreen() {
         animationType="fade"
         onRequestClose={() => setIsSortModalVisible(false)}
       >
-        <View style={[styles.modalOverlay, { paddingBottom: bottomSheetInset }]}>
+        <View style={styles.modalOverlay}>
           <TouchableOpacity
             style={StyleSheet.absoluteFill}
             activeOpacity={1}
@@ -213,10 +209,7 @@ export default function HomeScreen() {
           <View
             style={[
               styles.sortSheet,
-              {
-                backgroundColor: isDark ? Colors.dark.cardBackground ?? '#1d1d1d' : '#fff',
-                marginBottom: bottomSheetInset,
-              },
+              { backgroundColor: isDark ? Colors.dark.cardBackground ?? '#1d1d1d' : '#fff' },
             ]}
           >
             {SORT_OPTIONS.map((option) => (
@@ -254,6 +247,7 @@ const getStyles = (isDark: boolean) =>
     fab: {
       position: 'absolute',
       right: 20,
+      bottom: 60, // Slightly closer to navigation for reachability
       width: 56,
       height: 56,
       borderRadius: 28,

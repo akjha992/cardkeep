@@ -19,7 +19,6 @@ import {
   clearOutdatedDismissals,
   resetAllDismissals,
 } from '@/services/reminders.service';
-import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 const BILL_NUDGE_KEY = 'missing_bill_nudge';
 const BILL_NUDGE_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -27,7 +26,6 @@ const BILL_NUDGE_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 export default function RemindersScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { bottomSpacing } = useSafeSpacing();
   const { showToast } = useToast();
 
   const styles = getStyles(isDark);
@@ -145,7 +143,7 @@ export default function RemindersScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { paddingBottom: bottomSpacing }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>Reminders</Text>
         <TouchableOpacity style={styles.resetButton} onPress={handleResetDismissals}>
@@ -190,7 +188,7 @@ export default function RemindersScreen() {
         animationType="fade"
         onRequestClose={() => setMissingBillModalOpen(false)}
       >
-        <View style={[styles.modalOverlay, { paddingBottom: bottomSpacing }]}>
+        <View style={styles.modalOverlay}>
           <View
             style={styles.missingModalContainer}
           >
