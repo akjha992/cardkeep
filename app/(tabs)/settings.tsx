@@ -9,6 +9,11 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
@@ -257,97 +262,99 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
-        <Text style={styles.subtitle}>Manage your card data</Text>
-      </View>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Settings</Text>
+          <Text style={styles.subtitle}>Manage your card data</Text>
+        </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Privacy</Text>
-        <View style={styles.privacyCard}>
-          <Text style={styles.itemTitle}>Stays on this device</Text>
-          <Text style={styles.itemSubtitle}>
-            Card data is stored locally with encryption. Nothing is sent to a server unless you
-            export it yourself.
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Privacy</Text>
+          <View style={styles.privacyCard}>
+            <Text style={styles.itemTitle}>Stays on this device</Text>
+            <Text style={styles.itemSubtitle}>
+              Card data is stored locally with encryption. Nothing is sent to a server unless you
+              export it yourself.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Reminders</Text>
+          <View style={styles.reminderRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.itemTitle}>Reminder Window</Text>
+              <Text style={styles.itemSubtitle}>
+                Show bills within the next {reminderWindowDays} day(s)
+              </Text>
+            </View>
+            <View style={styles.stepperContainer}>
+              <TouchableOpacity
+                style={[styles.stepperButton, (isReminderLoading || isSavingReminder || reminderWindowDays <= 1) && styles.stepperButtonDisabled]}
+                onPress={() => updateReminderWindow(-1)}
+                disabled={isReminderLoading || isSavingReminder || reminderWindowDays <= 1}
+              >
+                <Text style={styles.stepperButtonText}>−</Text>
+              </TouchableOpacity>
+              <View style={styles.stepperValue}>
+                {isReminderLoading ? (
+                  <ActivityIndicator size="small" color={isDark ? Colors.dark.tint : Colors.light.tint} />
+                ) : (
+                  <Text style={styles.stepperValueText}>{reminderWindowDays}</Text>
+                )}
+              </View>
+              <TouchableOpacity
+                style={[styles.stepperButton, (isReminderLoading || isSavingReminder || reminderWindowDays >= 15) && styles.stepperButtonDisabled]}
+                onPress={() => updateReminderWindow(1)}
+                disabled={isReminderLoading || isSavingReminder || reminderWindowDays >= 15}
+              >
+                <Text style={styles.stepperButtonText}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <Text style={styles.reminderHint}>
+            Reminders tab highlights cards whose statements or payments fall within this window.
           </Text>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Reminders</Text>
-        <View style={styles.reminderRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.itemTitle}>Reminder Window</Text>
-            <Text style={styles.itemSubtitle}>
-              Show bills within the next {reminderWindowDays} day(s)
-            </Text>
-          </View>
-          <View style={styles.stepperContainer}>
-            <TouchableOpacity
-              style={[styles.stepperButton, (isReminderLoading || isSavingReminder || reminderWindowDays <= 1) && styles.stepperButtonDisabled]}
-              onPress={() => updateReminderWindow(-1)}
-              disabled={isReminderLoading || isSavingReminder || reminderWindowDays <= 1}
-            >
-              <Text style={styles.stepperButtonText}>−</Text>
-            </TouchableOpacity>
-            <View style={styles.stepperValue}>
-              {isReminderLoading ? (
-                <ActivityIndicator size="small" color={isDark ? Colors.dark.tint : Colors.light.tint} />
-              ) : (
-                <Text style={styles.stepperValueText}>{reminderWindowDays}</Text>
-              )}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Data Management</Text>
+          <TouchableOpacity style={styles.item} activeOpacity={0.7} onPress={handleStartImport}>
+            <View>
+              <Text style={styles.itemTitle}>Import Data</Text>
+              <Text style={styles.itemSubtitle}>Restore cards from a saved export</Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.item} activeOpacity={0.7} onPress={openExportModal}>
+            <View>
+              <Text style={styles.itemTitle}>Export Data</Text>
+              <Text style={styles.itemSubtitle}>Backup cards to an encrypted file</Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+          <View style={styles.deleteAllRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.deleteTitle}>Delete All Cards</Text>
+              <Text style={styles.deleteSubtitle}>
+                Permanently wipes your vault. Export a backup before continuing.
+              </Text>
             </View>
             <TouchableOpacity
-              style={[styles.stepperButton, (isReminderLoading || isSavingReminder || reminderWindowDays >= 15) && styles.stepperButtonDisabled]}
-              onPress={() => updateReminderWindow(1)}
-              disabled={isReminderLoading || isSavingReminder || reminderWindowDays >= 15}
+              style={[styles.deleteButton, isDeletingAll && styles.deleteButtonDisabled]}
+              onPress={handleDeleteAllCards}
+              activeOpacity={0.8}
+              disabled={isDeletingAll}
             >
-              <Text style={styles.stepperButtonText}>+</Text>
+              {isDeletingAll ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.deleteButtonText}>Delete</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={styles.reminderHint}>
-          Reminders tab highlights cards whose statements or payments fall within this window.
-        </Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Data Management</Text>
-        <TouchableOpacity style={styles.item} activeOpacity={0.7} onPress={handleStartImport}>
-          <View>
-            <Text style={styles.itemTitle}>Import Data</Text>
-            <Text style={styles.itemSubtitle}>Restore cards from a saved export</Text>
-          </View>
-          <Text style={styles.chevron}>›</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.item} activeOpacity={0.7} onPress={openExportModal}>
-          <View>
-            <Text style={styles.itemTitle}>Export Data</Text>
-            <Text style={styles.itemSubtitle}>Backup cards to an encrypted file</Text>
-          </View>
-          <Text style={styles.chevron}>›</Text>
-        </TouchableOpacity>
-        <View style={styles.deleteAllRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.deleteTitle}>Delete All Cards</Text>
-            <Text style={styles.deleteSubtitle}>
-              Permanently wipes your vault. Export a backup before continuing.
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={[styles.deleteButton, isDeletingAll && styles.deleteButtonDisabled]}
-            onPress={handleDeleteAllCards}
-            activeOpacity={0.8}
-            disabled={isDeletingAll}
-          >
-            {isDeletingAll ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.deleteButtonText}>Delete</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
+      </ScrollView>
 
       <Modal
         visible={isExportModalVisible}
@@ -522,6 +529,9 @@ const getStyles = (isDark: boolean) =>
       flex: 1,
       backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
       paddingHorizontal: 20,
+    },
+    scrollContent: {
+      paddingBottom: 32,
     },
     header: {
       paddingVertical: 24,
