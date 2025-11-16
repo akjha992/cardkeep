@@ -263,6 +263,17 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionLabel}>Privacy</Text>
+        <View style={styles.privacyCard}>
+          <Text style={styles.itemTitle}>Stays on this device</Text>
+          <Text style={styles.itemSubtitle}>
+            Card data is stored locally with encryption. Nothing is sent to a server unless you
+            export it yourself.
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionLabel}>Reminders</Text>
         <View style={styles.reminderRow}>
           <View style={{ flex: 1 }}>
@@ -526,6 +537,15 @@ const getStyles = (isDark: boolean) =>
       shadowRadius: 8,
       shadowOffset: { width: 0, height: 4 },
       elevation: 4,
+    },
+    privacyCard: {
+      marginHorizontal: 4,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderRadius: 12,
+      backgroundColor: isDark ? 'rgba(0,150,136,0.15)' : '#E6F7F4',
+      borderWidth: 1,
+      borderColor: isDark ? Colors.dark.inputBorder : '#B8E2DB',
     },
     sectionLabel: {
       fontSize: 14,
