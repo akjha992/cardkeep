@@ -87,6 +87,8 @@ export async function getCards(): Promise<Card[]> {
         typeof card.billGenerationDay === 'number'
           ? card.billGenerationDay
           : card.billGenerationDay ?? null,
+      billDueDay:
+        typeof card.billDueDay === 'number' ? card.billDueDay : card.billDueDay ?? null,
     }));
   } catch (error) {
     console.error('Error getting cards:', error);

@@ -73,11 +73,19 @@ export async function importCardData(fileUri: string, password: string): Promise
       card.cardType === 'Credit' && typeof card.billGenerationDay === 'number'
         ? card.billGenerationDay
         : null;
+    const billDueDay =
+      card.cardType === 'Credit' &&
+      typeof card.billDueDay === 'number' &&
+      card.billDueDay >= 1 &&
+      card.billDueDay <= 31
+        ? card.billDueDay
+        : null;
 
     newCards.push({
       ...card,
       cardNumber: normalizedNumber,
       billGenerationDay,
+      billDueDay,
     });
   }
 

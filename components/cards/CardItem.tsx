@@ -45,8 +45,8 @@ export default function CardItem({ card, onCopy, onEdit, accentIndex }: CardItem
     if (card.cardType !== 'Credit' || typeof card.billGenerationDay !== 'number') {
       return null;
     }
-    return getBillStatusMessage(card.billGenerationDay);
-  }, [card.cardType, card.billGenerationDay]);
+    return getBillStatusMessage(card.billGenerationDay, card.billDueDay);
+  }, [card.cardType, card.billGenerationDay, card.billDueDay]);
 
   const cardColors = card.color ? [card.color, card.color] : ['#2D2D2D', '#1A1A1A'];
   const accentGradient = useMemo(() => pickAccentGradient(accentIndex), [accentIndex]);

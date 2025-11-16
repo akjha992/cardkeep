@@ -1,6 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Card } from '@/types/card.types';
-import { getNextStatementDate, getDueDate, BillingConstants, extractExpiryMonth, getNextRenewalDate } from '@/utils/billing';
+import {
+  getNextStatementDate,
+  getDueDate,
+  BillingConstants,
+  extractExpiryMonth,
+  getNextRenewalDate,
+} from '@/utils/billing';
 
 const DISMISSALS_KEY = 'reminder_dismissals';
 
@@ -98,7 +104,7 @@ function getFutureRemindersForCard(
     reminders.push({ reason: 'statement', date: statementDate });
   }
 
-  const dueDate = getDueDate(card.billGenerationDay, today);
+  const dueDate = getDueDate(card.billGenerationDay, today, card.billDueDay);
   if (dueDate >= today) {
     reminders.push({ reason: 'due', date: dueDate });
   }
