@@ -30,7 +30,9 @@ export default function SettingsScreen() {
 
   const [isExportModalVisible, setIsExportModalVisible] = useState(false);
   const [exportPassword, setExportPassword] = useState('');
+  const [confirmExportPassword, setConfirmExportPassword] = useState('');
   const [exportPasswordError, setExportPasswordError] = useState<string | null>(null);
+  const [confirmExportPasswordError, setConfirmExportPasswordError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [includeUsageInExport, setIncludeUsageInExport] = useState(true);
 
@@ -63,8 +65,10 @@ export default function SettingsScreen() {
 
   const openExportModal = () => {
     setExportPassword('');
+    setConfirmExportPassword('');
     setExportPasswordError(null);
-     setIncludeUsageInExport(true);
+    setConfirmExportPasswordError(null);
+    setIncludeUsageInExport(true);
     setIsExportModalVisible(true);
   };
 
@@ -72,14 +76,21 @@ export default function SettingsScreen() {
     if (isExporting) return;
     setIsExportModalVisible(false);
     setExportPassword('');
+    setConfirmExportPassword('');
     setExportPasswordError(null);
+    setConfirmExportPasswordError(null);
   };
 
   const handleConfirmExport = async () => {
     const password = exportPassword.trim();
+    const confirmPassword = confirmExportPassword.trim();
 
     if (!password) {
       setExportPasswordError('Password is required');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setConfirmExportPasswordError('Passwords do not match');
       return;
     }
 
@@ -368,14 +379,32 @@ export default function SettingsScreen() {
                 if (exportPasswordError) {
                   setExportPasswordError(null);
                 }
+                if (confirmExportPasswordError) {
+                  setConfirmExportPasswordError(null);
+                }
               }}
               placeholder="Password"
               placeholderTextColor={isDark ? '#6B6B6B' : '#9E9E9E'}
               secureTextEntry
-              style={[styles.input, exportPasswordError && styles.inputError]}
+              style={[styles.input, (exportPasswordError || confirmExportPasswordError) && styles.inputError]}
               editable={!isExporting}
             />
             {exportPasswordError && <Text style={styles.errorText}>{exportPasswordError}</Text>}
+            <TextInput
+              value={confirmExportPassword}
+              onChangeText={(value) => {
+                setConfirmExportPassword(value);
+                if (confirmExportPasswordError) {
+                  setConfirmExportPasswordError(null);
+                }
+              }}
+              placeholder="Confirm password"
+              placeholderTextColor={isDark ? '#6B6B6B' : '#9E9E9E'}
+              secureTextEntry
+              style={[styles.input, confirmExportPasswordError && styles.inputError]}
+              editable={!isExporting}
+            />
+            {confirmExportPasswordError && <Text style={styles.errorText}>{confirmExportPasswordError}</Text>}
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
