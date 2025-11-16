@@ -35,7 +35,7 @@ export function SearchBar({ onSearch, debounceTime = 500 }: SearchBarProps) {
       <Ionicons name="search" size={20} color={iconColor} style={styles.searchIcon} />
       <TextInput
         style={[styles.input, { color }]}
-        placeholder="Search by bank or name..."
+        placeholder="Search"
         placeholderTextColor={placeholderColor}
         value={query}
         onChangeText={setQuery}

@@ -1,8 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View, RefreshControl } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View, RefreshControl, Modal, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { router } from 'expo-router';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -18,16 +20,23 @@ import {
   resetAllDismissals,
 } from '@/services/reminders.service';
 
+const BILL_NUDGE_KEY = 'missing_bill_nudge';
+const BILL_NUDGE_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
 export default function RemindersScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const styles = getStyles(isDark);
   const { showToast } = useToast();
+
+  const styles = getStyles(isDark);
 
   const [reminders, setReminders] = useState<CardReminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [reminderWindowDays, setReminderWindowDays] = useState(5);
+  const [missingBillCards, setMissingBillCards] = useState<Card[]>([]);
+  const [showMissingBillNudge, setShowMissingBillNudge] = useState(false);
+  const [isMissingBillModalOpen, setMissingBillModalOpen] = useState<boolean>(false);
 
   const loadReminders = useCallback(async () => {
     try {
@@ -35,6 +44,19 @@ export default function RemindersScreen() {
       await clearOutdatedDismissals();
       const [cards, prefs] = await Promise.all([getCards(), getAppPreferences()]);
       setReminderWindowDays(prefs.reminderWindowDays);
+      const missingCards = cards.filter(
+        (card) => card.cardType === 'Credit' && typeof card.billGenerationDay !== 'number'
+      );
+      setMissingBillCards(missingCards);
+      if (missingCards.length > 0) {
+        const lastDismissedRaw = await AsyncStorage.getItem(BILL_NUDGE_KEY);
+        const lastDismissed = lastDismissedRaw ? Number(lastDismissedRaw) : 0;
+        const shouldShow = !lastDismissed || Date.now() - lastDismissed > BILL_NUDGE_COOLDOWN_MS;
+        setShowMissingBillNudge(shouldShow);
+      } else {
+        setShowMissingBillNudge(false);
+      }
+
       const active = await getActiveReminders(cards as Card[], prefs.reminderWindowDays);
       setReminders(active);
     } catch (error) {
@@ -70,6 +92,8 @@ export default function RemindersScreen() {
 
   const handleResetDismissals = async () => {
     try {
+      await AsyncStorage.removeItem(BILL_NUDGE_KEY);
+      setShowMissingBillNudge(true);
       await resetAllDismissals();
       showToast({ message: 'Reminders reset.', type: 'success' });
       await loadReminders();
@@ -77,6 +101,24 @@ export default function RemindersScreen() {
       console.error('Failed to reset reminders:', error);
       showToast({ message: 'Failed to reset reminders.', type: 'error' });
     }
+  };
+
+  const handleDismissBillNudge = useCallback(async () => {
+    try {
+      await AsyncStorage.setItem(BILL_NUDGE_KEY, String(Date.now()));
+    } catch (error) {
+      console.error('Failed to persist bill nudge dismissal:', error);
+    }
+    setShowMissingBillNudge(false);
+  }, []);
+
+  const handleOpenMissingBillList = () => {
+    setMissingBillModalOpen(true);
+  };
+
+  const handleEditMissingCard = (card: Card) => {
+    setMissingBillModalOpen(false);
+    router.push({ pathname: '/add-card', params: { id: card.id } });
   };
 
   const emptyState = (
@@ -111,6 +153,20 @@ export default function RemindersScreen() {
       <Text style={styles.subtitle}>
         Upcoming statements, payments, and renewals over the next {reminderWindowDays} day(s)
       </Text>
+      {showMissingBillNudge && missingBillCards.length > 0 && (
+        <TouchableOpacity style={styles.nudgeCard} onPress={handleOpenMissingBillList} activeOpacity={0.9}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.nudgeTitle}>Add bill generation days</Text>
+            <Text style={styles.nudgeSubtitle}>
+              {missingBillCards.length} credit card{missingBillCards.length > 1 ? 's' : ''} need a
+              bill day to enable reminders.
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.nudgeDismissButton} onPress={handleDismissBillNudge}>
+            <Text style={styles.nudgeDismissText}>Dismiss</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      )}
       <FlatList
         data={reminders}
         keyExtractor={(item) => item.key}
@@ -126,6 +182,41 @@ export default function RemindersScreen() {
         contentContainerStyle={reminders.length === 0 ? styles.emptyContent : undefined}
         refreshControl={<RefreshControl refreshing={refreshing && !loading} onRefresh={handleRefresh} />}
       />
+      <Modal
+        visible={isMissingBillModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMissingBillModalOpen(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={styles.missingModalContainer}
+          >
+            <Text style={styles.missingModalTitle}>Cards missing bill day</Text>
+            <ScrollView style={{ maxHeight: 320 }}>
+              {missingBillCards.map((card) => (
+                <TouchableOpacity
+                  key={card.id}
+                  style={styles.missingCardRow}
+                  onPress={() => handleEditMissingCard(card)}
+                >
+                  <View>
+                    <Text style={styles.missingCardTitle}>{card.bankName}</Text>
+                    <Text style={styles.missingCardSubtitle}>{card.cardholderName}</Text>
+                  </View>
+                  <Text style={styles.missingCardAction}>Edit</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.missingModalClose}
+              onPress={() => setMissingBillModalOpen(false)}
+            >
+              <Text style={styles.missingModalCloseText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -202,6 +293,39 @@ const getStyles = (isDark: boolean) =>
       color: isDark ? 'rgba(235,235,245,0.6)' : Colors.light.icon,
       marginBottom: 16,
     },
+    nudgeCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 12,
+      borderRadius: 12,
+      backgroundColor: isDark ? 'rgba(255,200,0,0.15)' : '#FFF6E1',
+      borderWidth: 1,
+      borderColor: isDark ? Colors.dark.inputBorder : '#F0D58C',
+      marginBottom: 12,
+      gap: 12,
+    },
+    nudgeTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.text : Colors.light.text,
+    },
+    nudgeSubtitle: {
+      fontSize: 12,
+      color: isDark ? Colors.dark.icon : Colors.light.icon,
+      marginTop: 4,
+    },
+    nudgeDismissButton: {
+      paddingVertical: 6,
+      paddingHorizontal: 14,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: isDark ? Colors.dark.icon : Colors.light.icon,
+    },
+    nudgeDismissText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.text : Colors.light.text,
+    },
     emptyState: {
       alignItems: 'center',
       marginTop: 80,
@@ -231,6 +355,57 @@ const getStyles = (isDark: boolean) =>
       fontSize: 12,
       fontWeight: '600',
       color: isDark ? Colors.dark.text : Colors.light.text,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+      justifyContent: 'center',
+    },
+    missingModalContainer: {
+      margin: 20,
+      borderRadius: 16,
+      padding: 16,
+      backgroundColor: isDark ? Colors.dark.cardBackground ?? '#1c1c1e' : '#fff',
+    },
+    missingModalTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.text : Colors.light.text,
+      marginBottom: 12,
+    },
+    missingCardRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? Colors.dark.inputBorder : '#eee',
+    },
+    missingCardTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.text : Colors.light.text,
+    },
+    missingCardSubtitle: {
+      fontSize: 12,
+      color: isDark ? Colors.dark.icon : Colors.light.icon,
+    },
+    missingCardAction: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.tint : Colors.light.tint,
+    },
+    missingModalClose: {
+      marginTop: 12,
+      alignSelf: 'flex-end',
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 10,
+      backgroundColor: Colors.light.tint,
+    },
+    missingModalCloseText: {
+      color: '#fff',
+      fontWeight: '600',
     },
   });
 
@@ -303,13 +478,3 @@ const reminderCardStyles = (isDark: boolean) =>
       alignItems: 'center',
     },
   });
-  const handleResetDismissals = async () => {
-    try {
-      await resetAllDismissals();
-      showToast({ message: 'Reminders reset.', type: 'success' });
-      await loadReminders();
-    } catch (error) {
-      console.error('Failed to reset reminders:', error);
-      showToast({ message: 'Failed to reset reminders.', type: 'error' });
-    }
-  };
