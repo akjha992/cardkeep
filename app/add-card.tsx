@@ -11,8 +11,9 @@ import { StatusBar } from 'expo-status-bar';
 import AddCardForm from '@/components/cards/AddCardForm';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Card } from '@/types/card.types';
+import { Card, CardType } from '@/types/card.types';
 import { getCards, togglePin, deleteCard, updateCard } from '@/services/storage.service';
+import { getAppPreferences } from '@/services/preferences.service';
 import { useToast } from '@/components/ui/Toast';
 
 export default function AddCardScreen() {
@@ -26,11 +27,20 @@ export default function AddCardScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(Boolean(params.id));
   const [isPinning, setIsPinning] = useState(false);
   const [isUpdatingReminders, setIsUpdatingReminders] = useState(false);
+  const [defaultCardType, setDefaultCardType] = useState<CardType>('Credit');
 
   useEffect(() => {
     if (!params.id) {
       setActiveCard(undefined);
       setIsLoading(false);
+      (async () => {
+        try {
+          const prefs = await getAppPreferences();
+          setDefaultCardType(prefs.defaultCardType ?? 'Credit');
+        } catch (error) {
+          console.error('Failed to load preferences:', error);
+        }
+      })();
       return;
     }
 
@@ -190,6 +200,7 @@ export default function AddCardScreen() {
           onCancel={handleCancel}
           initialCard={activeCard}
           mode={params.id ? 'edit' : 'add'}
+          defaultCardType={defaultCardType}
         />
       )}
     </SafeAreaView>

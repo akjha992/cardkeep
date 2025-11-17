@@ -8,12 +8,14 @@ export interface AppPreferences {
   reminderWindowDays: number;
   showCardAccents: boolean;
   cardSortOrder: CardSortOrder;
+  defaultCardType: 'Credit' | 'Debit';
 }
 
 const DEFAULT_PREFERENCES: AppPreferences = {
   reminderWindowDays: 5,
   showCardAccents: true,
   cardSortOrder: 'usage',
+  defaultCardType: 'Credit',
 };
 
 async function readRawPreferences(): Promise<Partial<AppPreferences>> {

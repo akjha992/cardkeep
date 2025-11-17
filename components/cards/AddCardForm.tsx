@@ -6,6 +6,7 @@
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { saveCard } from '@/services/storage.service';
+import { updateAppPreferences } from '@/services/preferences.service';
 import { Card, CardType } from '@/types/card.types';
 import { formatCardNumber } from '@/utils/formatters';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -64,6 +65,7 @@ interface AddCardFormProps {
   onCancel: () => void;
   initialCard?: Card;
   mode?: 'add' | 'edit';
+  defaultCardType?: CardType;
 }
 
 export default function AddCardForm({
@@ -71,6 +73,7 @@ export default function AddCardForm({
   onCancel,
   initialCard,
   mode = 'add',
+  defaultCardType = 'Credit',
 }: AddCardFormProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -83,7 +86,7 @@ export default function AddCardForm({
   const [bankName, setBankName] = useState('');
   const [cardVariant, setCardVariant] = useState('');
   const [cardholderName, setCardholderName] = useState('');
-  const [cardType, setCardType] = useState<CardType>('Credit');
+  const [cardType, setCardType] = useState<CardType>(defaultCardType);
   const [billGenerationDay, setBillGenerationDay] = useState('');
   const [billDueDay, setBillDueDay] = useState('');
   const [isDueDayManual, setIsDueDayManual] = useState(false);
@@ -128,6 +131,12 @@ export default function AddCardForm({
       setIsDueDayManual(false);
     }
   }, [initialCard]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      setCardType(defaultCardType);
+    }
+  }, [defaultCardType, isEditMode]);
 
   const handleSelectCardType = (type: CardType) => {
     setCardType(type);
@@ -303,6 +312,9 @@ export default function AddCardForm({
       };
 
       await saveCard(newCard);
+      if (!isEditMode) {
+        await updateAppPreferences({ defaultCardType: cardType });
+      }
       onSave();
     } catch (error) {
       Alert.alert('Error', 'Failed to save card. Please try again.');
