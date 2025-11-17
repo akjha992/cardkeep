@@ -3,7 +3,7 @@
  * Displays list of cards
  */
 
-import React from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { FlatList, StyleSheet, View, Text } from 'react-native';
 import { Card } from '@/types/card.types';
 import CardItem from './CardItem';
@@ -18,16 +18,28 @@ interface CardListProps {
   onEditCard: (card: Card) => void;
 }
 
-export default function CardList({
-  cards,
-  onRefresh,
-  refreshing = false,
-  onCopyCard,
-  onEditCard,
-}: CardListProps) {
+export type CardListHandle = {
+  scrollToTop: () => void;
+};
+
+const CardList = forwardRef<CardListHandle, CardListProps>(function CardList(
+  { cards, onRefresh, refreshing = false, onCopyCard, onEditCard },
+  ref
+) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-
+  const listRef = useRef<FlatList<Card>>(null);
+  useImperativeHandle(
+    ref,
+    () => ({
+      scrollToTop() {
+        if (listRef.current) {
+          listRef.current.scrollToOffset({ offset: 0, animated: true });
+        }
+      },
+    }),
+    []
+  );
   const styles = getStyles(isDark);
 
   if (cards.length === 0) {
@@ -41,6 +53,7 @@ export default function CardList({
 
   return (
     <FlatList
+      ref={listRef}
       data={cards}
       renderItem={({ item, index }) => (
         <CardItem
@@ -57,7 +70,9 @@ export default function CardList({
       showsVerticalScrollIndicator={false}
     />
   );
-}
+});
+
+export default CardList;
 
 const getStyles = (isDark: boolean) =>
   StyleSheet.create({

@@ -2,7 +2,7 @@
  * Main Cards List Screen
  */
 
-import CardList from '@/components/cards/CardList';
+import CardList, { CardListHandle } from '@/components/cards/CardList';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { useToast } from '@/components/ui/Toast';
 import { Colors } from '@/constants/theme';
@@ -13,10 +13,10 @@ import { CardReminder, getActiveReminders } from '@/services/reminders.service';
 import { incrementUsage } from '@/services/storage.service';
 import { Card } from '@/types/card.types';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect, useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -37,6 +37,8 @@ export default function HomeScreen() {
   const isDark = colorScheme === 'dark';
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
+  const navigation = useNavigation();
+  const cardListRef = useRef<CardListHandle>(null);
 
   const [cards, setCards] = useState<Card[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -130,6 +132,20 @@ export default function HomeScreen() {
 
   const bottomSheetInset = Math.max(insets.bottom, 16);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('tabPress', () => {
+      // Scroll to top if already on home tab
+      if ('isFocused' in navigation && typeof navigation.isFocused === 'function') {
+        if (navigation.isFocused()) {
+          cardListRef.current?.scrollToTop();
+        }
+      } else {
+        cardListRef.current?.scrollToTop();
+      }
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.heroHeader}>
@@ -186,6 +202,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       )}
       <CardList
+        ref={cardListRef}
         cards={displayCards}
         onRefresh={handleRefresh}
         refreshing={refreshing}
