@@ -6,7 +6,7 @@ import { copyToClipboard } from '@/utils/clipboard';
 import { formatExpiryDate, maskCardNumber, removeSpacesFromCardNumber } from '@/utils/formatters';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { Animated, Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const CARD_ASPECT_RATIO = 1.586;
@@ -40,6 +40,8 @@ export default function CardItem({ card, onCopy, onEdit, accentIndex }: CardItem
   const styles = getStyles(isDark);
   const pinAccent = isDark ? Colors.dark.tint : Colors.light.tint;
   const scale = useRef(new Animated.Value(1)).current;
+  const [showSensitive, setShowSensitive] = useState(false);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const billStatusMessage = useMemo(() => {
     if (card.cardType !== 'Credit' || typeof card.billGenerationDay !== 'number') {
@@ -55,7 +57,23 @@ export default function CardItem({ card, onCopy, onEdit, accentIndex }: CardItem
     const cleanedCardNumber = removeSpacesFromCardNumber(card.cardNumber);
     await copyToClipboard(cleanedCardNumber);
     onCopy(card.id);
+    setShowSensitive(true);
+    if (hideTimer.current) {
+      clearTimeout(hideTimer.current);
+    }
+    hideTimer.current = setTimeout(() => {
+      setShowSensitive(false);
+      hideTimer.current = null;
+    }, 4000);
   };
+
+  useEffect(() => {
+    return () => {
+      if (hideTimer.current) {
+        clearTimeout(hideTimer.current);
+      }
+    };
+  }, []);
 
   const handleLongPress = () => {
     onEdit(card);
@@ -137,7 +155,9 @@ export default function CardItem({ card, onCopy, onEdit, accentIndex }: CardItem
               </View>
               <View style={{ alignItems: 'flex-end', marginLeft: 20 }}>
                 <Text style={styles.label}>CVV</Text>
-                <Text style={styles.value}>{card.cvv}</Text>
+                <Text style={styles.value}>
+                  {showSensitive ? card.cvv : '•'.repeat(card.cvv.length || 3)}
+                </Text>
               </View>
             </View>
           </View>
