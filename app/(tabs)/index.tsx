@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import React, { useCallback, useMemo, useRef, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -47,6 +47,7 @@ export default function HomeScreen() {
   const [reminderPreview, setReminderPreview] = useState<CardReminder | null>(null);
   const [sortOrder, setSortOrder] = useState<CardSortOrder>('usage');
   const [isSortModalVisible, setIsSortModalVisible] = useState(false);
+  const [searchBarResetKey, setSearchBarResetKey] = useState(0);
 
   const loadCards = useCallback(async () => {
     try {
@@ -72,6 +73,7 @@ export default function HomeScreen() {
   const filteredCards = useMemo(() => {
     return filterCards(cards, searchQuery);
   }, [cards, searchQuery]);
+  const isSearchActive = searchQuery.trim().length > 0;
 
   const displayCards = useMemo(() => {
     const pinned = filteredCards.filter((card) => card.isPinned);
@@ -131,6 +133,14 @@ export default function HomeScreen() {
   const styles = getStyles(isDark);
 
   const bottomSheetInset = Math.max(insets.bottom, 16);
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+    setSearchBarResetKey((prev) => prev + 1);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('tabPress', () => {
@@ -174,7 +184,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
         </View>
       </View>
-      <SearchBar onSearch={setSearchQuery} />
+      <SearchBar key={searchBarResetKey} onSearch={handleSearch} />
       {reminderCount > 0 && reminderPreview && (
         <TouchableOpacity style={styles.reminderBanner} onPress={handleOpenReminders}>
           <Ionicons
@@ -213,6 +223,28 @@ export default function HomeScreen() {
       <TouchableOpacity style={styles.fab} onPress={handleAddCard}>
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
+      {isSearchActive && (
+        <View
+          pointerEvents="box-none"
+          style={[styles.searchBadgeContainer, { bottom: Math.max(insets.bottom, 16) + 80 }]}
+        >
+          <TouchableOpacity
+            style={[
+              styles.searchBadge,
+              { backgroundColor: isDark ? Colors.dark.cardBackground ?? '#1c1c1c' : '#fff' },
+            ]}
+            onPress={handleClearSearch}
+            activeOpacity={0.85}
+          >
+            <Ionicons
+              name="filter"
+              size={14}
+              color={isDark ? Colors.dark.text : Colors.light.text}
+            />
+            <Text style={styles.searchBadgeText}>Clear Search Filter</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       <Modal
         visible={isSortModalVisible}
         transparent
@@ -398,6 +430,32 @@ const getStyles = (isDark: boolean) =>
       backgroundColor: isDark ? Colors.dark.cardBackground ?? '#1a1a1a' : '#fff',
     },
     countChipText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.text : Colors.light.text,
+    },
+    searchBadgeContainer: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      alignItems: 'center',
+    },
+    searchBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: isDark ? Colors.dark.inputBorder : '#d0d0d0',
+      shadowColor: '#000',
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 3 },
+      elevation: 4,
+    },
+    searchBadgeText: {
       fontSize: 12,
       fontWeight: '600',
       color: isDark ? Colors.dark.text : Colors.light.text,
