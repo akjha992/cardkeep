@@ -159,14 +159,13 @@ export default function AddCardForm({
     setBillGenerationDay(sanitized);
     if (!sanitized) {
       setBillDueDay('');
-      setIsDueDayManual(false);
     }
   };
 
   const handleDueDayChange = (value: string) => {
     const sanitized = value.replace(/[^0-9]/g, '');
     setBillDueDay(sanitized);
-    setIsDueDayManual(Boolean(sanitized));
+    setIsDueDayManual(true);
     setErrors((prev) => {
       if (!prev.billDueDay) return prev;
       const next = { ...prev };
@@ -181,7 +180,6 @@ export default function AddCardForm({
     }
     if (!numericBillDay) {
       setBillDueDay('');
-      setIsDueDayManual(false);
       return;
     }
     if (isDueDayManual) {
@@ -511,6 +509,7 @@ export default function AddCardForm({
             style={[styles.input, errors.billDueDay && styles.inputError]}
             value={billDueDay}
             onChangeText={handleDueDayChange}
+            onFocus={() => setIsDueDayManual(true)}
             placeholder={
               numericBillDay ? String(addWindowToBillDay(numericBillDay, suggestedWindowDays)) : 'e.g., 5'
             }

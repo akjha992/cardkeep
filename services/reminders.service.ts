@@ -104,9 +104,11 @@ function getFutureRemindersForCard(
     reminders.push({ reason: 'statement', date: statementDate });
   }
 
-  const dueDate = getDueDate(card.billGenerationDay, today, card.billDueDay);
-  if (dueDate >= today) {
-    reminders.push({ reason: 'due', date: dueDate });
+  if (typeof card.billDueDay === 'number') {
+    const dueDate = getDueDate(card.billGenerationDay, today, card.billDueDay);
+    if (dueDate >= today) {
+      reminders.push({ reason: 'due', date: dueDate });
+    }
   }
 
   const expiryMonthIndex = extractExpiryMonth(card.expiryDate);
