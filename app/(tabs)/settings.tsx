@@ -47,12 +47,18 @@ export default function SettingsScreen() {
   const [isReminderLoading, setIsReminderLoading] = useState(true);
   const [isSavingReminder, setIsSavingReminder] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [reminderTypes, setReminderTypes] = useState({
+    statement: true,
+    due: true,
+    renewal: true,
+  });
 
   useEffect(() => {
     const loadPreferences = async () => {
       try {
         const prefs = await getAppPreferences();
         setReminderWindowDays(prefs.reminderWindowDays);
+        setReminderTypes(prefs.reminderTypes ?? { statement: true, due: true, renewal: true });
       } catch (error) {
         console.error('Failed to load preferences:', error);
         showToast({ message: 'Failed to load reminder settings.', type: 'error' });
@@ -71,6 +77,18 @@ export default function SettingsScreen() {
     setConfirmExportPasswordError(null);
     setIncludeUsageInExport(true);
     setIsExportModalVisible(true);
+  };
+
+  const toggleReminderType = async (type: 'statement' | 'due' | 'renewal', value: boolean) => {
+    const next = { ...reminderTypes, [type]: value };
+    setReminderTypes(next);
+    try {
+      await updateAppPreferences({ reminderTypes: next });
+    } catch (error) {
+      console.error('Failed to update reminder types:', error);
+      showToast({ message: 'Failed to update reminder types.', type: 'error' });
+      setReminderTypes(reminderTypes); // revert
+    }
   };
 
   const closeExportModal = () => {
@@ -308,9 +326,57 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-          <Text style={styles.reminderHint}>
-            Reminders tab highlights cards whose statements or payments fall within this window.
-          </Text>
+        <Text style={styles.reminderHint}>
+          Reminders tab highlights cards whose statements or payments fall within this window.
+        </Text>
+        <View style={styles.reminderTypeBlock}>
+          <Text style={styles.reminderTypeTitle}>Reminder types</Text>
+          <View style={styles.reminderToggleRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.itemTitle}>Statements</Text>
+              <Text style={styles.itemSubtitle}>Alert me when statements are about to generate</Text>
+            </View>
+            <Switch
+              value={reminderTypes.statement}
+              onValueChange={(value) => toggleReminderType('statement', value)}
+              trackColor={{
+                false: isDark ? '#3A3A3A' : '#D1D1D1',
+                true: isDark ? Colors.dark.tint : Colors.light.tint,
+              }}
+              thumbColor="#fff"
+            />
+          </View>
+          <View style={styles.reminderToggleRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.itemTitle}>Payments</Text>
+              <Text style={styles.itemSubtitle}>Warn me when a bill may be due soon</Text>
+            </View>
+            <Switch
+              value={reminderTypes.due}
+              onValueChange={(value) => toggleReminderType('due', value)}
+              trackColor={{
+                false: isDark ? '#3A3A3A' : '#D1D1D1',
+                true: isDark ? Colors.dark.tint : Colors.light.tint,
+              }}
+              thumbColor="#fff"
+            />
+          </View>
+          <View style={styles.reminderToggleRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.itemTitle}>Renewals</Text>
+              <Text style={styles.itemSubtitle}>Remind me before card renewal months</Text>
+            </View>
+            <Switch
+              value={reminderTypes.renewal}
+              onValueChange={(value) => toggleReminderType('renewal', value)}
+              trackColor={{
+                false: isDark ? '#3A3A3A' : '#D1D1D1',
+                true: isDark ? Colors.dark.tint : Colors.light.tint,
+              }}
+              thumbColor="#fff"
+            />
+          </View>
+        </View>
         </View>
 
         <View style={styles.section}>
@@ -602,6 +668,22 @@ const getStyles = (isDark: boolean) =>
       fontSize: 12,
       color: isDark ? Colors.dark.icon : Colors.light.icon,
       paddingHorizontal: 12,
+    },
+    reminderTypeBlock: {
+      marginTop: 12,
+      paddingHorizontal: 12,
+      gap: 12,
+    },
+    reminderTypeTitle: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: isDark ? Colors.dark.icon : Colors.light.icon,
+      textTransform: 'uppercase',
+    },
+    reminderToggleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
     },
     stepperContainer: {
       flexDirection: 'row',

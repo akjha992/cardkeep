@@ -9,6 +9,11 @@ export interface AppPreferences {
   showCardAccents: boolean;
   cardSortOrder: CardSortOrder;
   defaultCardType: 'Credit' | 'Debit';
+  reminderTypes: {
+    statement: boolean;
+    due: boolean;
+    renewal: boolean;
+  };
 }
 
 const DEFAULT_PREFERENCES: AppPreferences = {
@@ -16,6 +21,11 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   showCardAccents: true,
   cardSortOrder: 'usage',
   defaultCardType: 'Credit',
+  reminderTypes: {
+    statement: true,
+    due: true,
+    renewal: true,
+  },
 };
 
 async function readRawPreferences(): Promise<Partial<AppPreferences>> {

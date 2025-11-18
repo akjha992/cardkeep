@@ -125,14 +125,17 @@ function getFutureRemindersForCard(
 export async function getActiveReminders(
   cards: Card[],
   reminderWindowDays: number,
-  today: Date = new Date()
+  today: Date = new Date(),
+  enabledReasons: Partial<Record<ReminderReason, boolean>> = { statement: true, due: true, renewal: true }
 ): Promise<CardReminder[]> {
   const normalizedToday = startOfDay(today);
   const dismissals = await getDismissalMap();
   const reminders: CardReminder[] = [];
 
   cards.forEach((card) => {
-    const events = getFutureRemindersForCard(card, normalizedToday);
+    const events = getFutureRemindersForCard(card, normalizedToday).filter(
+      ({ reason }) => enabledReasons[reason] !== false
+    );
     events.forEach(({ reason, date }) => {
       const daysUntil = Math.round((date.getTime() - normalizedToday.getTime()) / BillingConstants.DAY_IN_MS);
       if (daysUntil < 0 || daysUntil > reminderWindowDays) {

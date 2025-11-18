@@ -54,7 +54,12 @@ export default function HomeScreen() {
       const [loadedCards, prefs] = await Promise.all([getSortedCards(), getAppPreferences()]);
       setCards(loadedCards);
       setSortOrder(prefs.cardSortOrder ?? 'usage');
-      const reminders = await getActiveReminders(loadedCards, prefs.reminderWindowDays);
+      const reminders = await getActiveReminders(
+        loadedCards,
+        prefs.reminderWindowDays,
+        new Date(),
+        prefs.reminderTypes
+      );
       setReminderCount(reminders.length);
       setReminderPreview(reminders[0] ?? null);
     } catch (error) {

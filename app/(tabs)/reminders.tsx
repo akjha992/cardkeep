@@ -57,7 +57,7 @@ export default function RemindersScreen() {
         setShowMissingBillNudge(false);
       }
 
-      const active = await getActiveReminders(cards as Card[], prefs.reminderWindowDays);
+      const active = await getActiveReminders(cards as Card[], prefs.reminderWindowDays, new Date(), prefs.reminderTypes);
       setReminders(active);
     } catch (error) {
       console.error('Failed to load reminders:', error);
