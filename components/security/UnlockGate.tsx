@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState, ReactNode } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, AppState, AppStateStatus, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -10,6 +10,7 @@ type UnlockGateProps = {
 };
 
 type GateStatus = 'checking' | 'authorized' | 'error' | 'unsupported';
+const RELOCK_TIMEOUT_MS = 60 * 1000;
 
 export function UnlockGate({ children }: UnlockGateProps) {
   const colorScheme = useColorScheme();
@@ -18,6 +19,7 @@ export function UnlockGate({ children }: UnlockGateProps) {
 
   const [status, setStatus] = useState<GateStatus>('checking');
   const [message, setMessage] = useState<string>('Verifying device security…');
+  const lastBackgroundTime = useRef<number | null>(null);
 
   const authenticate = useCallback(async () => {
     setStatus('checking');
@@ -58,6 +60,27 @@ export function UnlockGate({ children }: UnlockGateProps) {
   useEffect(() => {
     authenticate();
   }, [authenticate]);
+
+  useEffect(() => {
+    const handleAppStateChange = (nextState: AppStateStatus) => {
+      if (nextState === 'background' || nextState === 'inactive') {
+        lastBackgroundTime.current = Date.now();
+      } else if (nextState === 'active') {
+        if (
+          status === 'authorized' &&
+          lastBackgroundTime.current &&
+          Date.now() - lastBackgroundTime.current > RELOCK_TIMEOUT_MS
+        ) {
+          authenticate();
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => {
+      subscription.remove();
+    };
+  }, [authenticate, status]);
 
   if (status === 'authorized') {
     return <>{children}</>;
