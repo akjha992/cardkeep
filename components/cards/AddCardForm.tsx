@@ -5,8 +5,8 @@
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { saveCard } from '@/services/storage.service';
 import { updateAppPreferences } from '@/services/preferences.service';
+import { saveCard } from '@/services/storage.service';
 import { Card, CardType } from '@/types/card.types';
 import { formatCardNumber } from '@/utils/formatters';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -33,6 +33,8 @@ const KNOWN_BANK_DUE_WINDOWS: { pattern: RegExp; window: number }[] = [
   { pattern: /icici/i, window: 18 },
   { pattern: /axis/i, window: 20 },
   { pattern: /sbi/i, window: 20 },
+  { pattern: /au/i, window: 18 },
+  { pattern: /hsbc/i, window: 15 },
   { pattern: /american express|amex/i, window: 25 },
 ];
 
