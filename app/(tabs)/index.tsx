@@ -15,7 +15,7 @@ import { Card } from '@/types/card.types';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,6 +38,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
   const navigation = useNavigation();
+  const params = useLocalSearchParams<{ focusId?: string; focusTs?: string }>();
   const cardListRef = useRef<CardListHandle>(null);
 
   const [cards, setCards] = useState<Card[]>([]);
@@ -48,6 +49,7 @@ export default function HomeScreen() {
   const [sortOrder, setSortOrder] = useState<CardSortOrder>('usage');
   const [isSortModalVisible, setIsSortModalVisible] = useState(false);
   const [searchBarResetKey, setSearchBarResetKey] = useState(0);
+  const [highlightedCardId, setHighlightedCardId] = useState<string | null>(null);
 
   const loadCards = useCallback(async () => {
     try {
@@ -143,9 +145,11 @@ export default function HomeScreen() {
   }, []);
 
   const handleClearSearch = useCallback(() => {
-    setSearchQuery('');
-    setSearchBarResetKey((prev) => prev + 1);
-  }, []);
+    if (searchQuery.length > 0) {
+      setSearchQuery('');
+      setSearchBarResetKey((prev) => prev + 1);
+    }
+  }, [searchQuery]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('tabPress', () => {
@@ -160,6 +164,27 @@ export default function HomeScreen() {
     });
     return unsubscribe;
   }, [navigation]);
+
+  useEffect(() => {
+    if (!params.focusId || cards.length === 0) {
+      return;
+    }
+    const targetId = String(params.focusId);
+    handleClearSearch();
+    requestAnimationFrame(() => {
+      cardListRef.current?.scrollToCard(targetId);
+      setHighlightedCardId(targetId);
+    });
+    router.setParams({ focusId: undefined, focusTs: undefined } as any);
+  }, [params.focusId, params.focusTs, cards, handleClearSearch]);
+
+  useEffect(() => {
+    if (!highlightedCardId) {
+      return;
+    }
+    const timeout = setTimeout(() => setHighlightedCardId((current) => (current === highlightedCardId ? null : current)), 2000);
+    return () => clearTimeout(timeout);
+  }, [highlightedCardId]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -223,6 +248,7 @@ export default function HomeScreen() {
         refreshing={refreshing}
         onCopyCard={handleCopyCard}
         onEditCard={handleEditCard}
+        highlightedCardId={highlightedCardId}
       />
 
       <TouchableOpacity style={styles.fab} onPress={handleAddCard}>

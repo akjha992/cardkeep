@@ -6,7 +6,7 @@ import { copyToClipboard } from '@/utils/clipboard';
 import { formatExpiryDate, maskCardNumber, removeSpacesFromCardNumber } from '@/utils/formatters';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const CARD_ASPECT_RATIO = 1.586;
@@ -32,9 +32,10 @@ interface CardItemProps {
   onCopy: (id: string) => void;
   onEdit: (card: Card) => void;
   accentIndex: number;
+  isHighlighted?: boolean;
 }
 
-export default function CardItem({ card, onCopy, onEdit, accentIndex }: CardItemProps) {
+export default function CardItem({ card, onCopy, onEdit, accentIndex, isHighlighted = false }: CardItemProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const styles = getStyles(isDark);
@@ -162,6 +163,7 @@ export default function CardItem({ card, onCopy, onEdit, accentIndex }: CardItem
             </View>
           </View>
         </LinearGradient>
+        {isHighlighted && <View style={styles.highlightOverlay} pointerEvents="none" />}
       </Animated.View>
     </Pressable>
   );
@@ -182,6 +184,13 @@ const getStyles = (isDark: boolean) =>
       shadowRadius: 12,
       elevation: 6,
       borderRadius: 20,
+    },
+    highlightOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      borderRadius: 24,
+      borderWidth: 2,
+      borderColor: Colors.light.tint,
+      opacity: 0.9,
     },
     card: {
       flex: 1,

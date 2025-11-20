@@ -176,6 +176,7 @@ export default function RemindersScreen() {
             isDark={isDark}
             onDismiss={() => handleDismiss(item)}
             onSkip={() => handleSkipRemindersForCard(item.card)}
+            onPress={() => handleReminderPress(item.card)}
           />
         )}
         ListEmptyComponent={!loading ? emptyState : null}
@@ -226,15 +227,17 @@ function ReminderCard({
   isDark,
   onDismiss,
   onSkip,
+  onPress,
 }: {
   reminder: CardReminder;
   isDark: boolean;
   onDismiss: () => void;
   onSkip: () => void;
+  onPress: () => void;
 }) {
   const styles = reminderCardStyles(isDark);
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={onPress}>
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitle}>{reminder.card.bankName}</Text>
         <View style={styles.actionsRow}>
@@ -264,7 +267,7 @@ function ReminderCard({
       <Text style={styles.reason}>{reminder.label}</Text>
       <Text style={styles.subreason}>{reminder.sublabel}</Text>
       <Text style={styles.timing}>In {reminder.daysUntil} day(s)</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -478,3 +481,9 @@ const reminderCardStyles = (isDark: boolean) =>
       alignItems: 'center',
     },
   });
+  const handleReminderPress = (card: Card) => {
+    router.push({
+      pathname: '/',
+      params: { focusId: card.id, focusTs: Date.now().toString() },
+    });
+  };

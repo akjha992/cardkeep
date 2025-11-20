@@ -16,29 +16,40 @@ interface CardListProps {
   refreshing?: boolean;
   onCopyCard: (id: string) => void;
   onEditCard: (card: Card) => void;
+  highlightedCardId?: string | null;
 }
 
 export type CardListHandle = {
   scrollToTop: () => void;
+  scrollToCard: (id: string) => void;
 };
 
 const CardList = forwardRef<CardListHandle, CardListProps>(function CardList(
-  { cards, onRefresh, refreshing = false, onCopyCard, onEditCard },
+  { cards, onRefresh, refreshing = false, onCopyCard, onEditCard, highlightedCardId = null },
   ref
 ) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const listRef = useRef<FlatList<Card>>(null);
+
   useImperativeHandle(
     ref,
     () => ({
       scrollToTop() {
-        if (listRef.current) {
-          listRef.current.scrollToOffset({ offset: 0, animated: true });
+        listRef.current?.scrollToOffset({ offset: 0, animated: true });
+      },
+      scrollToCard(id: string) {
+        const index = cards.findIndex((card) => card.id === id);
+        if (index >= 0 && listRef.current) {
+          try {
+            listRef.current.scrollToIndex({ index, animated: true });
+          } catch {
+            listRef.current.scrollToOffset({ offset: 0, animated: true });
+          }
         }
       },
     }),
-    []
+    [cards]
   );
   const styles = getStyles(isDark);
 
@@ -61,6 +72,7 @@ const CardList = forwardRef<CardListHandle, CardListProps>(function CardList(
           onCopy={onCopyCard}
           onEdit={onEditCard}
           accentIndex={index}
+          isHighlighted={highlightedCardId === item.id}
         />
       )}
       keyExtractor={(item) => item.id}
