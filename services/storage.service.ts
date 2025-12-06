@@ -89,6 +89,7 @@ export async function getCards(): Promise<Card[]> {
           : card.billGenerationDay ?? null,
       billDueDay:
         typeof card.billDueDay === 'number' ? card.billDueDay : card.billDueDay ?? null,
+      customReminders: Array.isArray(card.customReminders) ? card.customReminders : [],
     }));
   } catch (error) {
     console.error('Error getting cards:', error);

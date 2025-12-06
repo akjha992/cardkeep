@@ -2,6 +2,12 @@
  * Card type definitions
  */
 
+export interface CardCustomReminder {
+  id: string; // uuid
+  dayOfMonth: number; // 1-31
+  label: string; // user text
+}
+
 export interface Card {
   id: string; // Unique identifier (UUID)
   cardNumber: string; // Full card number (stored securely)
@@ -14,6 +20,7 @@ export interface Card {
   billGenerationDay?: number | null; // Optional bill generation day (1-31) for credit cards
   billDueDay?: number | null; // Optional bill due day (1-31) for credit cards
   skipReminders?: boolean; // If true, do not generate reminders for this card
+  customReminders?: CardCustomReminder[]; // User-defined reminders
   usageCount: number; // Number of times card number is copied
   isPinned: boolean; // Whether card is pinned
   createdAt: number; // Creation timestamp (Unix timestamp)

@@ -81,11 +81,27 @@ export async function importCardData(fileUri: string, password: string): Promise
         ? card.billDueDay
         : null;
 
+    const customReminders = Array.isArray(card.customReminders)
+      ? card.customReminders
+          .map((reminder) => {
+            if (!reminder || typeof reminder.dayOfMonth !== 'number' || !reminder.label) {
+              return null;
+            }
+            return {
+              id: reminder.id ?? normalizedNumber + '-' + reminder.dayOfMonth,
+              dayOfMonth: Math.min(Math.max(1, reminder.dayOfMonth), 31),
+              label: String(reminder.label).trim(),
+            };
+          })
+          .filter((value): value is NonNullable<typeof value> => Boolean(value))
+      : [];
+
     newCards.push({
       ...card,
       cardNumber: normalizedNumber,
       billGenerationDay,
       billDueDay,
+      customReminders,
     });
   }
 

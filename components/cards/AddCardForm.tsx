@@ -283,6 +283,7 @@ export default function AddCardForm({
             billGenerationDay: null,
             billDueDay: null,
             skipReminders: false,
+            customReminders: [],
             usageCount: 0,
             isPinned: false,
             createdAt: now,
@@ -309,6 +310,7 @@ export default function AddCardForm({
         billGenerationDay: cardType === 'Credit' ? parsedBillDay : null,
         billDueDay: cardType === 'Credit' ? parsedBillDueDay : null,
         skipReminders,
+        customReminders: initialCard?.customReminders ?? [],
       };
 
       await saveCard(newCard);
