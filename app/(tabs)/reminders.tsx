@@ -524,7 +524,9 @@ function ReminderCard({
       </View>
       {!isGlobal && (
         <Text style={styles.cardSubtitle}>
-          {[reminder.card.cardVariant, reminder.card.cardholderName].filter(Boolean).join(' • ')}
+          {[reminder.card.bankName, reminder.card.cardVariant, reminder.card.cardholderName]
+            .filter(Boolean)
+            .join(' • ')}
         </Text>
       )}
       {reminder.note ? <Text style={styles.cardSubtitle}>{reminder.note}</Text> : null}
