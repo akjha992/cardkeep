@@ -1,4 +1,5 @@
 import { Card } from '@/types/card.types';
+import { getGlobalCustomReminders, GlobalCustomReminder } from './reminders.service';
 import { encrypt, generateHash } from '@/utils/crypto';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
@@ -8,12 +9,13 @@ import { getCards } from './storage.service';
 
 const EXPORT_FILE_NAME = 'cardvault-export.json';
 const MIME_TYPE = 'application/json';
-const EXPORT_VERSION = 1;
+const EXPORT_VERSION = 2;
 
 type ExportBundle = {
   version: number;
   exportedAt: number;
   cards: Card[];
+  globalCustomReminders: GlobalCustomReminder[];
   hash: string;
 };
 
@@ -26,14 +28,15 @@ function sanitizeCard(card: Card): Card {
 }
 
 async function createBundle(includeUsage: boolean): Promise<{ bundle: ExportBundle; serialized: string }> {
-  const cards = await getCards();
+  const [cards, globalCustomReminders] = await Promise.all([getCards(), getGlobalCustomReminders()]);
   const cardsForExport = includeUsage ? cards : cards.map(sanitizeCard);
-  const cardsJson = JSON.stringify(cardsForExport);
-  const hash = await generateHash(cardsJson);
+  const payloadForHash = JSON.stringify({ cards: cardsForExport, globalCustomReminders });
+  const hash = await generateHash(payloadForHash);
   const bundle: ExportBundle = {
     version: EXPORT_VERSION,
     exportedAt: Date.now(),
     cards: cardsForExport,
+    globalCustomReminders,
     hash,
   };
   return { bundle, serialized: JSON.stringify(bundle) };

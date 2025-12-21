@@ -4,11 +4,13 @@ import { removeSpacesFromCardNumber } from '@/utils/formatters';
 import * as FileSystem from 'expo-file-system/legacy';
 
 import { getCards, setCards } from './storage.service';
+import { setGlobalCustomReminders, GlobalCustomReminder } from './reminders.service';
 
 interface ImportBundle {
   version: number;
   exportedAt: number;
   cards: Card[];
+  globalCustomReminders?: GlobalCustomReminder[];
   hash: string;
 }
 
@@ -17,7 +19,7 @@ export interface ImportSummary {
   duplicates: number;
 }
 
-const EXPECTED_VERSION = 1;
+const EXPECTED_VERSION = 2;
 
 export async function importCardData(fileUri: string, password: string): Promise<ImportSummary> {
   if (!password) {
@@ -42,8 +44,11 @@ export async function importCardData(fileUri: string, password: string): Promise
     throw new Error('Import file version is not supported.');
   }
 
-  const cardsJson = JSON.stringify(bundle.cards);
-  const computedHash = await generateHash(cardsJson);
+  const payloadForHash = JSON.stringify({
+    cards: bundle.cards,
+    globalCustomReminders: bundle.globalCustomReminders ?? [],
+  });
+  const computedHash = await generateHash(payloadForHash);
   if (computedHash !== bundle.hash) {
     throw new Error('Import file failed integrity verification.');
   }
@@ -108,6 +113,26 @@ export async function importCardData(fileUri: string, password: string): Promise
 
   if (newCards.length > 0) {
     await setCards([...existingCards, ...newCards]);
+  }
+
+  if (Array.isArray(bundle.globalCustomReminders)) {
+    const cleanedGlobals = bundle.globalCustomReminders
+      .map((entry) => {
+        if (!entry || typeof entry.dayOfMonth !== 'number' || !entry.label || !entry.title) {
+          return null;
+        }
+        return {
+          id: entry.id ?? String(Date.now()),
+          dayOfMonth: Math.min(Math.max(1, entry.dayOfMonth), 31),
+          label: String(entry.label).trim(),
+          title: String(entry.title).trim(),
+        };
+      })
+      .filter((value): value is NonNullable<typeof value> => Boolean(value));
+
+    if (cleanedGlobals.length > 0) {
+      await setGlobalCustomReminders(cleanedGlobals);
+    }
   }
 
   return {
