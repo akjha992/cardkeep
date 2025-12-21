@@ -12,7 +12,10 @@ Allow users to create custom reminders tied to a specific card directly from the
 
 ## 2. Clarification & Requirements (AI + User)
 **Interaction Log:**
-- [ ] **AI:** To build custom reminders from the Reminders screen, I need to understand:
+- [x] **AI:** Follow-up on overdue reminder behavior:
+  5. Keep overdue reminders visible until dismissed, but hide them automatically after a 7-day grace period; label them “Overdue - X days” while overdue.
+
+- [x] **AI:** To build custom reminders from the Reminders screen, I need to understand:
   1. Should custom reminders support both absolute calendar dates and offsets (e.g., “3 days before bill day”), or just a fixed calendar date? - fix calander day (assumed cadence is monthly)
   2. Can a card have multiple custom reminders at once, and is there any limit the user expects? - can have multiple
   3. When a custom reminder fires, should it recur automatically (monthly/yearly) or is it one-time unless the user recreates it? - monthly
@@ -49,6 +52,7 @@ Allow users to create custom reminders tied to a specific card directly from the
 - [x] [Task-02] Reminder generation logic for custom reminders
 - [x] [Task-03] Reminders screen UI (CTA + modal for create/edit/delete)
 - [x] [Task-04] Render custom reminder cards with edit button and dismissal parity
+- [x] [Task-05] Overdue reminder handling (grace period & label)
 
 **Gate 3: Completion**
-- [ ] Feature tested and verified.
+- [x] Feature tested and verified.

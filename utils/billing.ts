@@ -1,4 +1,4 @@
-const BILL_PAYMENT_WINDOW_DAYS = 15;
+const BILL_PAYMENT_WINDOW_DAYS = 15; // default billing period when none is provided
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 function startOfDay(date: Date): Date {
@@ -39,44 +39,37 @@ function getDueDateFromWindow(billDay: number, referenceDate: Date, windowDays: 
   return startOfDay(new Date(nextBill.getTime() + windowDays * DAY_IN_MS));
 }
 
-function getDueDateForStatement(statementDate: Date, billDueDay: number) {
-  const sameMonthDue = clampBillDay(
-    statementDate.getFullYear(),
-    statementDate.getMonth(),
-    billDueDay
-  );
-  if (sameMonthDue > statementDate) {
-    return sameMonthDue;
-  }
-  return clampBillDay(statementDate.getFullYear(), statementDate.getMonth() + 1, billDueDay);
-}
-
 export function getDueDate(
   billDay: number,
   referenceDate: Date = new Date(),
-  customDueDay?: number | null
+  billingPeriodDays?: number | null
 ): Date {
-  if (typeof customDueDay !== 'number') {
+  const today = startOfDay(referenceDate);
+
+  // If no billing period provided, fall back to default window.
+  if (typeof billingPeriodDays !== 'number' || billingPeriodDays <= 0) {
     return getDueDateFromWindow(billDay, referenceDate, BILL_PAYMENT_WINDOW_DAYS);
   }
-  const today = startOfDay(referenceDate);
+
+  // Find the most recent statement on/before today.
   const year = today.getFullYear();
   const month = today.getMonth();
-  let lastStatement = clampBillDay(year, month, billDay);
-  if (lastStatement > today) {
-    lastStatement = clampBillDay(year, month - 1, billDay);
-  }
-  const dueFromLast = getDueDateForStatement(lastStatement, customDueDay);
+  const currentStatement = clampBillDay(year, month, billDay);
+  const lastStatement = currentStatement > today ? clampBillDay(year, month - 1, billDay) : currentStatement;
+
+  const dueFromLast = startOfDay(new Date(lastStatement.getTime() + billingPeriodDays * DAY_IN_MS));
   if (dueFromLast >= today) {
     return dueFromLast;
   }
+
+  // Otherwise use the next statement + period.
   const nextStatement = getNextStatementDate(billDay, today);
-  return getDueDateForStatement(nextStatement, customDueDay);
+  return startOfDay(new Date(nextStatement.getTime() + billingPeriodDays * DAY_IN_MS));
 }
 
 export function getBillStatusMessage(
   billDay: number,
-  billDueDay?: number | null,
+  billingPeriodDays?: number | null,
   referenceDate: Date = new Date()
 ): string {
   const today = startOfDay(referenceDate);
@@ -86,7 +79,11 @@ export function getBillStatusMessage(
     return 'Next bill today';
   }
 
-  const dueDate = getDueDate(billDay, today, billDueDay);
+  if (typeof billingPeriodDays !== 'number') {
+    return `Next bill in ${daysUntilStatement} days`;
+  }
+
+  const dueDate = getDueDate(billDay, today, billingPeriodDays);
   const daysUntilDue = Math.round((dueDate.getTime() - today.getTime()) / DAY_IN_MS);
   if (daysUntilDue >= 0 && daysUntilDue <= BILL_PAYMENT_WINDOW_DAYS) {
     const dueLabel = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });

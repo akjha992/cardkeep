@@ -73,12 +73,13 @@ export async function importCardData(fileUri: string, password: string): Promise
       card.cardType === 'Credit' && typeof card.billGenerationDay === 'number'
         ? card.billGenerationDay
         : null;
-    const billDueDay =
-      card.cardType === 'Credit' &&
-      typeof card.billDueDay === 'number' &&
-      card.billDueDay >= 1 &&
-      card.billDueDay <= 31
-        ? card.billDueDay
+    const billingPeriodDays =
+      card.cardType === 'Credit'
+        ? typeof card.billingPeriodDays === 'number'
+          ? card.billingPeriodDays
+          : typeof card.billDueDay === 'number'
+            ? card.billDueDay
+            : null
         : null;
 
     const customReminders = Array.isArray(card.customReminders)
@@ -100,7 +101,7 @@ export async function importCardData(fileUri: string, password: string): Promise
       ...card,
       cardNumber: normalizedNumber,
       billGenerationDay,
-      billDueDay,
+      billingPeriodDays,
       customReminders,
     });
   }

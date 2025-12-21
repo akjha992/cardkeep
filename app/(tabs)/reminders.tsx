@@ -18,6 +18,8 @@ import {
   getActiveReminders,
   clearOutdatedDismissals,
   resetAllDismissals,
+  getGlobalCustomReminders,
+  setGlobalCustomReminders,
 } from '@/services/reminders.service';
 
 const BILL_NUDGE_KEY = 'missing_bill_nudge';
@@ -39,26 +41,30 @@ export default function RemindersScreen() {
   const [showMissingBillNudge, setShowMissingBillNudge] = useState(false);
   const [isMissingBillModalOpen, setMissingBillModalOpen] = useState<boolean>(false);
   const [isCustomModalOpen, setCustomModalOpen] = useState<boolean>(false);
+  const [globalCustomReminders, setGlobalCustomRemindersState] = useState<CardCustomReminder[]>([]);
   const [customReminderForm, setCustomReminderForm] = useState<{
-    selectedCardId: string | null;
+    title: string;
     day: string;
     label: string;
     editingId?: string | null;
-    cardSearch?: string;
   }>({
-    selectedCardId: null,
+    title: '',
     day: '',
     label: '',
     editingId: null,
-    cardSearch: '',
   });
 
   const loadReminders = useCallback(async () => {
     try {
       setLoading(true);
       await clearOutdatedDismissals();
-      const [cards, prefs] = await Promise.all([getCards(), getAppPreferences()]);
+      const [cards, prefs, globalCustom] = await Promise.all([
+        getCards(),
+        getAppPreferences(),
+        getGlobalCustomReminders(),
+      ]);
       setCardsCache(cards as Card[]);
+      setGlobalCustomRemindersState(globalCustom);
       setReminderWindowDays(prefs.reminderWindowDays);
       const missingCards = cards.filter(
         (card) => card.cardType === 'Credit' && typeof card.billGenerationDay !== 'number'
@@ -73,7 +79,13 @@ export default function RemindersScreen() {
         setShowMissingBillNudge(false);
       }
 
-      const active = await getActiveReminders(cards as Card[], prefs.reminderWindowDays, new Date(), prefs.reminderTypes);
+      const active = await getActiveReminders(
+        cards as Card[],
+        prefs.reminderWindowDays,
+        new Date(),
+        prefs.reminderTypes,
+        globalCustom
+      );
       setReminders(active);
     } catch (error) {
       console.error('Failed to load reminders:', error);
@@ -88,15 +100,6 @@ export default function RemindersScreen() {
       loadReminders();
     }, [loadReminders])
   );
-
-  useEffect(() => {
-    if (!customReminderForm.selectedCardId && cardsCache.length > 0) {
-      setCustomReminderForm((prev) => ({
-        ...prev,
-        selectedCardId: cardsCache[0].id,
-      }));
-    }
-  }, [cardsCache, customReminderForm.selectedCardId]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -168,73 +171,40 @@ export default function RemindersScreen() {
   };
 
   const openCustomReminderModal = () => {
-    if (cardsCache.length === 0) {
-      showToast({ message: 'Add a card before creating reminders.', type: 'info' });
-      return;
-    }
-    const defaultCardId = cardsCache[0].id;
     setCustomReminderForm({
-      selectedCardId: customReminderForm.selectedCardId ?? defaultCardId,
+      title: '',
       day: '',
       label: '',
       editingId: null,
-      cardSearch: '',
     });
     setCustomModalOpen(true);
   };
 
-  const handleCustomInputChange = (field: 'selectedCardId' | 'day' | 'label', value: string) => {
+  const handleCustomInputChange = (field: 'title' | 'day' | 'label', value: string) => {
     setCustomReminderForm((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleCardSearch = (value: string) => {
-    setCustomReminderForm((prev) => ({
-      ...prev,
-      cardSearch: value,
-    }));
-  };
-
-  const handleEditCustomReminder = (cardId: string, reminder: CardCustomReminder) => {
+  const handleEditCustomReminder = (reminder: CardCustomReminder) => {
     setCustomReminderForm({
-      selectedCardId: cardId,
+      title: (reminder as any).title ?? '',
       day: String(reminder.dayOfMonth),
       label: reminder.label,
       editingId: reminder.id,
-      cardSearch: '',
     });
     setCustomModalOpen(true);
   };
 
-  const filteredCards = useMemo(() => {
-    const search = (customReminderForm.cardSearch ?? '').trim().toLowerCase();
-    if (!search) {
-      return cardsCache;
-    }
-    return cardsCache.filter((card) => {
-      const haystack = [card.bankName, card.cardholderName, card.cardVariant]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(search);
-    });
-  }, [cardsCache, customReminderForm.cardSearch]);
-
-  const selectedCard = useMemo(
-    () => cardsCache.find((card) => card.id === customReminderForm.selectedCardId) ?? null,
-    [cardsCache, customReminderForm.selectedCardId]
-  );
-
   const handleSaveCustomReminder = async () => {
-    if (!customReminderForm.selectedCardId) {
-      showToast({ message: 'Select a card first.', type: 'error' });
-      return;
-    }
     const day = parseInt(customReminderForm.day, 10);
     if (Number.isNaN(day) || day < 1 || day > 31) {
       showToast({ message: 'Day must be between 1 and 31.', type: 'error' });
+      return;
+    }
+    if (!customReminderForm.title.trim()) {
+      showToast({ message: 'Title is required.', type: 'error' });
       return;
     }
     if (!customReminderForm.label.trim()) {
@@ -243,12 +213,7 @@ export default function RemindersScreen() {
     }
 
     try {
-      const card = selectedCard;
-      if (!card) {
-        showToast({ message: 'Card not found.', type: 'error' });
-        return;
-      }
-      const existing = Array.isArray(card.customReminders) ? [...card.customReminders] : [];
+      const existing = [...globalCustomReminders];
       if (customReminderForm.editingId) {
         const index = existing.findIndex((r) => r.id === customReminderForm.editingId);
         if (index >= 0) {
@@ -256,17 +221,19 @@ export default function RemindersScreen() {
         }
       } else {
         existing.push({
-          id: `${card.id}-${Date.now()}`,
+          id: `global-${Date.now()}`,
           dayOfMonth: day,
           label: customReminderForm.label.trim(),
+          title: customReminderForm.title.trim(),
         });
       }
 
-      await updateCard(card.id, { customReminders: existing });
+      await setGlobalCustomReminders(existing);
+      setGlobalCustomRemindersState(existing);
       showToast({ message: 'Custom reminder saved.', type: 'success' });
       setCustomModalOpen(false);
       setCustomReminderForm({
-        selectedCardId: card.id,
+        title: '',
         day: '',
         label: '',
         editingId: null,
@@ -278,15 +245,11 @@ export default function RemindersScreen() {
     }
   };
 
-  const handleDeleteCustomReminder = async (cardId: string, reminderId: string) => {
+  const handleDeleteCustomReminder = async (reminderId: string) => {
     try {
-      const cards = await getCards();
-      const card = cards.find((c) => c.id === cardId);
-      if (!card) {
-        return;
-      }
-      const next = (card.customReminders ?? []).filter((reminder) => reminder.id !== reminderId);
-      await updateCard(cardId, { customReminders: next });
+      const next = globalCustomReminders.filter((reminder) => reminder.id !== reminderId);
+      await setGlobalCustomReminders(next);
+      setGlobalCustomRemindersState(next);
       showToast({ message: 'Custom reminder removed.', type: 'success' });
       if (customReminderForm.editingId === reminderId) {
         setCustomReminderForm((prev) => ({ ...prev, editingId: null, day: '', label: '' }));
@@ -299,6 +262,9 @@ export default function RemindersScreen() {
   };
 
   const handleReminderPress = (card: Card) => {
+    if (card.id === 'global') {
+      return;
+    }
     router.push({
       pathname: '/',
       params: { focusId: card.id, focusTs: Date.now().toString() },
@@ -309,22 +275,16 @@ export default function RemindersScreen() {
     if (reminder.reason !== 'custom' || !reminder.customId) {
       return;
     }
-    const card = cardsCache.find((c) => c.id === reminder.card.id);
-    if (!card) {
-      showToast({ message: 'Card not found.', type: 'error' });
-      return;
-    }
-    const existing = card.customReminders?.find((entry) => entry.id === reminder.customId);
+    const existing = globalCustomReminders.find((entry) => entry.id === reminder.customId);
     if (!existing) {
       showToast({ message: 'Reminder not found.', type: 'error' });
       return;
     }
     setCustomReminderForm({
-      selectedCardId: card.id,
+      title: (existing as any).title ?? '',
       day: String(existing.dayOfMonth),
       label: existing.label,
       editingId: existing.id,
-      cardSearch: '',
     });
     setCustomModalOpen(true);
   };
@@ -343,7 +303,7 @@ export default function RemindersScreen() {
         </View>
       </View>
       <Text style={styles.subtitle}>
-        Upcoming statements, payments, and renewals over the next {reminderWindowDays} day(s)
+        Upcoming statements, payments, renewals, and personal reminders over the next {reminderWindowDays} day(s)
       </Text>
       {showMissingBillNudge && missingBillCards.length > 0 && (
         <TouchableOpacity style={styles.nudgeCard} onPress={handleOpenMissingBillList} activeOpacity={0.9}>
@@ -428,47 +388,14 @@ export default function RemindersScreen() {
               nestedScrollEnabled
               showsVerticalScrollIndicator={false}
             >
-              <Text style={styles.label}>Select card</Text>
-              {cardsCache.length === 0 ? (
-                <Text style={styles.helperText}>You need at least one card to create reminders.</Text>
-              ) : (
-                <View>
-                  <TextInput
-                    style={[styles.input, { marginBottom: 12 }]}
-                    placeholder="Search cards"
-                    value={customReminderForm.cardSearch}
-                    onChangeText={handleCardSearch}
-                  />
-                  <View style={styles.cardPicker}>
-                    <ScrollView
-                      style={{ maxHeight: 180 }}
-                      nestedScrollEnabled
-                      showsVerticalScrollIndicator={false}
-                    >
-                      {filteredCards.map((card) => (
-                        <TouchableOpacity
-                          key={card.id}
-                          style={[
-                            styles.cardOption,
-                            customReminderForm.selectedCardId === card.id && styles.cardOptionSelected,
-                          ]}
-                          onPress={() => handleCustomInputChange('selectedCardId', card.id)}
-                        >
-                          <Text
-                            style={[
-                              styles.cardOptionText,
-                              customReminderForm.selectedCardId === card.id && styles.cardOptionTextSelected,
-                            ]}
-                          >
-                            {card.bankName}
-                            {card.cardVariant ? ` (${card.cardVariant})` : ''} • {card.cardholderName}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-                </View>
-              )}
+              <Text style={[styles.label, { marginTop: 16 }]}>Title</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g., Pay rent"
+                value={customReminderForm.title}
+                onChangeText={(value) => handleCustomInputChange('title', value)}
+                maxLength={80}
+              />
 
               <Text style={[styles.label, { marginTop: 16 }]}>Reminder day</Text>
               <TextInput
@@ -489,22 +416,27 @@ export default function RemindersScreen() {
               />
 
               <Text style={[styles.label, { marginTop: 20 }]}>Existing reminders</Text>
-              {selectedCard?.customReminders && selectedCard.customReminders.length > 0 ? (
-                selectedCard.customReminders.map((reminder) => (
+              {globalCustomReminders.length > 0 ? (
+                globalCustomReminders.map((reminder) => (
                   <View key={reminder.id} style={styles.customReminderRow}>
                     <View>
-                      <Text style={styles.customReminderLabel}>{reminder.label}</Text>
-                      <Text style={styles.customReminderMeta}>Day {reminder.dayOfMonth}</Text>
+                      <Text style={styles.customReminderLabel}>
+                        {(reminder as any).title ? `${(reminder as any).title}` : reminder.label}
+                      </Text>
+                      <Text style={styles.customReminderMeta}>
+                        Day {reminder.dayOfMonth}
+                        {reminder.label ? ` • ${reminder.label}` : ''}
+                      </Text>
                     </View>
                     <View style={styles.customReminderActions}>
-                      <TouchableOpacity onPress={() => handleEditCustomReminder(selectedCard.id, reminder)}>
+                      <TouchableOpacity onPress={() => handleEditCustomReminder(reminder)}>
                         <Ionicons
                           name="create-outline"
                           size={18}
                           color={isDark ? Colors.dark.icon : Colors.light.icon}
                         />
                       </TouchableOpacity>
-                      <TouchableOpacity onPress={() => handleDeleteCustomReminder(selectedCard.id, reminder.id)}>
+                      <TouchableOpacity onPress={() => handleDeleteCustomReminder(reminder.id)}>
                         <Ionicons
                           name="trash-outline"
                           size={18}
@@ -515,7 +447,7 @@ export default function RemindersScreen() {
                   </View>
                 ))
               ) : (
-                <Text style={styles.helperText}>No custom reminders for this card yet.</Text>
+                <Text style={styles.helperText}>No custom reminders yet.</Text>
               )}
             </ScrollView>
             <View style={styles.modalActionsRow}>
@@ -557,10 +489,11 @@ function ReminderCard({
   onEditCustom?: () => void;
 }) {
   const styles = reminderCardStyles(isDark);
+  const isGlobal = reminder.card.id === 'global';
   return (
     <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={onPress}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{reminder.card.bankName}</Text>
+        <Text style={styles.cardTitle}>{reminder.label}</Text>
         <View style={styles.actionsRow}>
           {reminder.reason === 'custom' && onEditCustom && (
             <TouchableOpacity
@@ -571,32 +504,36 @@ function ReminderCard({
               <Ionicons name="create-outline" size={16} color={isDark ? '#fff' : '#000'} />
             </TouchableOpacity>
           )}
-          <TouchableOpacity
-            style={styles.iconButtonAccent}
-            onPress={onSkip}
-            accessibilityLabel="Skip all reminders for this card"
-          >
-            <Ionicons
-              name="notifications-off-outline"
-              size={16}
-              color={isDark ? Colors.dark.destructive : Colors.light.destructive}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={onDismiss}
-            accessibilityLabel="Dismiss reminder"
-          >
+          {!isGlobal && (
+            <TouchableOpacity
+              style={styles.iconButtonAccent}
+              onPress={onSkip}
+              accessibilityLabel="Skip all reminders for this card"
+            >
+              <Ionicons
+                name="notifications-off-outline"
+                size={16}
+                color={isDark ? Colors.dark.destructive : Colors.light.destructive}
+              />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.iconButton} onPress={onDismiss} accessibilityLabel="Dismiss reminder">
             <Ionicons name="close" size={16} color={isDark ? '#fff' : '#000'} />
           </TouchableOpacity>
         </View>
       </View>
-      <Text style={styles.cardSubtitle}>
-        {[reminder.card.cardVariant, reminder.card.cardholderName].filter(Boolean).join(' • ')}
-      </Text>
-      <Text style={styles.reason}>{reminder.label}</Text>
+      {!isGlobal && (
+        <Text style={styles.cardSubtitle}>
+          {[reminder.card.cardVariant, reminder.card.cardholderName].filter(Boolean).join(' • ')}
+        </Text>
+      )}
+      {reminder.note ? <Text style={styles.cardSubtitle}>{reminder.note}</Text> : null}
       <Text style={styles.subreason}>{reminder.sublabel}</Text>
-      <Text style={styles.timing}>In {reminder.daysUntil} day(s)</Text>
+      <Text style={styles.timing}>
+        {reminder.daysUntil < 0
+          ? `Overdue - ${Math.abs(reminder.daysUntil)} day${Math.abs(reminder.daysUntil) === 1 ? '' : 's'}`
+          : `In ${reminder.daysUntil} day${reminder.daysUntil === 1 ? '' : 's'}`}
+      </Text>
     </TouchableOpacity>
   );
 }

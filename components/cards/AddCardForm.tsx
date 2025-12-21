@@ -44,24 +44,6 @@ function getDueWindowForBank(bankName: string) {
   return match?.window ?? DEFAULT_DUE_WINDOW_DAYS;
 }
 
-function clampDay(day: number) {
-  if (Number.isNaN(day)) return 1;
-  return Math.min(Math.max(1, day), 31);
-}
-
-function addWindowToBillDay(billDay: number, windowDays: number) {
-  if (!billDay) return '';
-  let candidate = billDay + windowDays;
-  while (candidate > 31) {
-    candidate -= 31;
-  }
-  return clampDay(candidate);
-}
-
-function suggestDueDay(billDay: number, bankName: string) {
-  return addWindowToBillDay(billDay, getDueWindowForBank(bankName));
-}
-
 interface AddCardFormProps {
   onSave: () => void;
   onCancel: () => void;
@@ -82,6 +64,20 @@ export default function AddCardForm({
   const isEditMode = mode === 'edit' || Boolean(initialCard);
   const insets = useSafeAreaInsets();
 
+  const presetBillingPeriod =
+    initialCard?.cardType === 'Credit' && typeof initialCard.billingPeriodDays === 'number'
+      ? String(initialCard.billingPeriodDays)
+      : initialCard?.cardType === 'Credit' && typeof (initialCard as any).billDueDay === 'number'
+        ? String((initialCard as any).billDueDay)
+        : '';
+
+  const presetBillGenerationDay =
+    initialCard?.cardType === 'Credit' && typeof initialCard.billGenerationDay === 'number'
+      ? String(initialCard.billGenerationDay)
+      : '';
+
+  const presetIsBillingPeriodManual = Boolean(presetBillingPeriod);
+
   const [cardNumber, setCardNumber] = useState('');
   const [cvv, setCvv] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
@@ -89,9 +85,9 @@ export default function AddCardForm({
   const [cardVariant, setCardVariant] = useState('');
   const [cardholderName, setCardholderName] = useState('');
   const [cardType, setCardType] = useState<CardType>(defaultCardType);
-  const [billGenerationDay, setBillGenerationDay] = useState('');
-  const [billDueDay, setBillDueDay] = useState('');
-  const [isDueDayManual, setIsDueDayManual] = useState(false);
+  const [billGenerationDay, setBillGenerationDay] = useState(presetBillGenerationDay);
+  const [billingPeriod, setBillingPeriod] = useState(presetBillingPeriod);
+  const [isBillingPeriodManual, setIsBillingPeriodManual] = useState(presetIsBillingPeriodManual);
   const [skipReminders, setSkipReminders] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -120,17 +116,27 @@ export default function AddCardForm({
     setCardVariant(initialCard.cardVariant ?? '');
     setSkipReminders(Boolean(initialCard.skipReminders));
     setCardType(initialCard.cardType);
+
     if (initialCard.cardType === 'Credit' && typeof initialCard.billGenerationDay === 'number') {
       setBillGenerationDay(String(initialCard.billGenerationDay));
     } else {
       setBillGenerationDay('');
     }
-    if (initialCard.cardType === 'Credit' && typeof initialCard.billDueDay === 'number') {
-      setBillDueDay(String(initialCard.billDueDay));
-      setIsDueDayManual(true);
+
+    const hasBillingPeriod =
+      initialCard.cardType === 'Credit' &&
+      (typeof initialCard.billingPeriodDays === 'number' || typeof (initialCard as any).billDueDay === 'number');
+
+    if (hasBillingPeriod) {
+      const value =
+        typeof initialCard.billingPeriodDays === 'number'
+          ? initialCard.billingPeriodDays
+          : (initialCard as any).billDueDay;
+      setBillingPeriod(String(value));
+      setIsBillingPeriodManual(true);
     } else {
-      setBillDueDay('');
-      setIsDueDayManual(false);
+      setBillingPeriod('');
+      setIsBillingPeriodManual(false);
     }
   }, [initialCard]);
 
@@ -144,13 +150,13 @@ export default function AddCardForm({
     setCardType(type);
     if (type === 'Debit') {
       setBillGenerationDay('');
-      setBillDueDay('');
-      setIsDueDayManual(false);
+      setBillingPeriod('');
+      setIsBillingPeriodManual(false);
       setErrors(prev => {
-        if (!prev.billGenerationDay) return prev;
+        if (!prev.billGenerationDay && !prev.billingPeriod) return prev;
         const next = { ...prev };
         delete next.billGenerationDay;
-        delete next.billDueDay;
+        delete next.billingPeriod;
         return next;
       });
     }
@@ -159,19 +165,19 @@ export default function AddCardForm({
   const handleBillDayChange = (value: string) => {
     const sanitized = value.replace(/[^0-9]/g, '');
     setBillGenerationDay(sanitized);
-    if (!sanitized) {
-      setBillDueDay('');
+    if (!sanitized && !isBillingPeriodManual) {
+      setBillingPeriod('');
     }
   };
 
-  const handleDueDayChange = (value: string) => {
+  const handleBillingPeriodChange = (value: string) => {
     const sanitized = value.replace(/[^0-9]/g, '');
-    setBillDueDay(sanitized);
-    setIsDueDayManual(true);
+    setBillingPeriod(sanitized);
+    setIsBillingPeriodManual(true);
     setErrors((prev) => {
-      if (!prev.billDueDay) return prev;
+      if (!prev.billingPeriod) return prev;
       const next = { ...prev };
-      delete next.billDueDay;
+      delete next.billingPeriod;
       return next;
     });
   };
@@ -180,16 +186,11 @@ export default function AddCardForm({
     if (cardType !== 'Credit') {
       return;
     }
-    if (!numericBillDay) {
-      setBillDueDay('');
-      return;
+
+    if (!isBillingPeriodManual && !billingPeriod.trim() && suggestedWindowDays) {
+      setBillingPeriod(String(suggestedWindowDays));
     }
-    if (isDueDayManual) {
-      return;
-    }
-    const autoDue = suggestDueDay(numericBillDay, bankName);
-    setBillDueDay(String(autoDue));
-  }, [cardType, numericBillDay, bankName, isDueDayManual]);
+  }, [cardType, billingPeriod, isBillingPeriodManual, suggestedWindowDays]);
 
   const handleExpiryChange = (value: string) => {
     const digitsOnly = value.replace(/[^0-9]/g, '').slice(0, 4);
@@ -246,10 +247,10 @@ export default function AddCardForm({
           newErrors.billGenerationDay = 'Bill generation day must be between 1 and 31';
         }
       }
-      if (billDueDay.trim()) {
-        const day = Number(billDueDay.trim());
-        if (Number.isNaN(day) || day < 1 || day > 31) {
-          newErrors.billDueDay = 'Bill due day must be between 1 and 31';
+      if (billingPeriod.trim()) {
+        const days = Number(billingPeriod.trim());
+        if (Number.isNaN(days) || days < 1 || days > 60) {
+          newErrors.billingPeriod = 'Billing period must be between 1 and 60 days';
         }
       }
     }
@@ -281,7 +282,7 @@ export default function AddCardForm({
             cardholderName: '',
             cardType,
             billGenerationDay: null,
-            billDueDay: null,
+            billingPeriodDays: null,
             skipReminders: false,
             customReminders: [],
             usageCount: 0,
@@ -295,8 +296,8 @@ export default function AddCardForm({
           ? Number(billGenerationDay.trim())
           : null;
 
-      const parsedBillDueDay =
-        cardType === 'Credit' && billDueDay.trim() ? Number(billDueDay.trim()) : null;
+      const parsedBillingPeriod =
+        cardType === 'Credit' && billingPeriod.trim() ? Number(billingPeriod.trim()) : null;
 
       const newCard: Card = {
         ...baseCard,
@@ -308,10 +309,15 @@ export default function AddCardForm({
         cardholderName: cardholderName.trim(),
         cardType,
         billGenerationDay: cardType === 'Credit' ? parsedBillDay : null,
-        billDueDay: cardType === 'Credit' ? parsedBillDueDay : null,
+        billingPeriodDays: cardType === 'Credit' ? parsedBillingPeriod : null,
         skipReminders,
         customReminders: initialCard?.customReminders ?? [],
       };
+
+      // Clean legacy field if present.
+      if ((newCard as any).billDueDay !== undefined) {
+        delete (newCard as any).billDueDay;
+      }
 
       await saveCard(newCard);
       if (!isEditMode) {
@@ -508,24 +514,21 @@ export default function AddCardForm({
 
       {cardType === 'Credit' && (
         <View style={styles.section}>
-          <Text style={styles.label}>Bill Due Day (Optional)</Text>
+          <Text style={styles.label}>Billing Period (Optional)</Text>
           <TextInput
-            style={[styles.input, errors.billDueDay && styles.inputError]}
-            value={billDueDay}
-            onChangeText={handleDueDayChange}
-            onFocus={() => setIsDueDayManual(true)}
-            placeholder={
-              numericBillDay ? String(addWindowToBillDay(numericBillDay, suggestedWindowDays)) : 'e.g., 5'
-            }
+            style={[styles.input, errors.billingPeriod && styles.inputError]}
+            value={billingPeriod}
+            onChangeText={handleBillingPeriodChange}
+            onFocus={() => setIsBillingPeriodManual(true)}
+            placeholder={String(suggestedWindowDays)}
             placeholderTextColor={isDark ? '#666' : '#999'}
             keyboardType="numeric"
             maxLength={2}
           />
           <Text style={styles.helperText}>
-            Auto-filled ~{suggestedWindowDays} day(s) after your statement. Adjust if your bank uses a different
-            window.
+            Days between statement and due. Auto-filled to ~{suggestedWindowDays} for this bank.
           </Text>
-          {errors.billDueDay && <Text style={styles.errorText}>{errors.billDueDay}</Text>}
+          {errors.billingPeriod && <Text style={styles.errorText}>{errors.billingPeriod}</Text>}
         </View>
       )}
 

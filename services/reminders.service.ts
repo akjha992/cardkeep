@@ -1,4 +1,4 @@
-import { Card } from '@/types/card.types';
+import { Card, CardCustomReminder } from '@/types/card.types';
 import {
   BillingConstants,
   clampBillDay,
@@ -10,6 +10,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DISMISSALS_KEY = 'reminder_dismissals';
+const GLOBAL_CUSTOM_REMINDERS_KEY = 'global_custom_reminders';
+const OVERDUE_GRACE_DAYS = 7;
 
 export type ReminderReason = 'statement' | 'due' | 'renewal' | 'custom';
 
@@ -22,6 +24,11 @@ export interface CardReminder {
   label: string;
   sublabel: string;
   customId?: string;
+  note?: string;
+}
+
+export interface GlobalCustomReminder extends CardCustomReminder {
+  title: string;
 }
 
 interface DismissalMap {
@@ -47,6 +54,30 @@ async function getDismissalMap(): Promise<DismissalMap> {
 
 async function setDismissalMap(map: DismissalMap): Promise<void> {
   await AsyncStorage.setItem(DISMISSALS_KEY, JSON.stringify(map));
+}
+
+export async function getGlobalCustomReminders(): Promise<GlobalCustomReminder[]> {
+  try {
+    const raw = await AsyncStorage.getItem(GLOBAL_CUSTOM_REMINDERS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((entry) => ({
+        id: entry.id ?? String(Date.now()),
+        dayOfMonth: Number(entry.dayOfMonth),
+        label: typeof entry.label === 'string' ? entry.label : '',
+        title: typeof entry.title === 'string' ? entry.title : '',
+      }))
+      .filter((entry) => !!entry.label && !!entry.title && Number.isFinite(entry.dayOfMonth));
+  } catch (error) {
+    console.error('Failed to load global custom reminders', error);
+    return [];
+  }
+}
+
+export async function setGlobalCustomReminders(reminders: GlobalCustomReminder[]): Promise<void> {
+  await AsyncStorage.setItem(GLOBAL_CUSTOM_REMINDERS_KEY, JSON.stringify(reminders));
 }
 
 function buildReminderKey(cardId: string, reason: ReminderReason, targetDate: number, customId?: string) {
@@ -110,11 +141,28 @@ function getFutureRemindersForCard(
   if (statementDate >= today) {
     reminders.push({ reason: 'statement', date: statementDate });
   }
+  const prevStatement = clampBillDay(today.getFullYear(), today.getMonth(), card.billGenerationDay);
+  if (prevStatement < today) {
+    reminders.push({ reason: 'statement', date: prevStatement });
+  }
 
-  if (typeof card.billDueDay === 'number') {
-    const dueDate = getDueDate(card.billGenerationDay, today, card.billDueDay);
+  if (typeof card.billingPeriodDays === 'number') {
+    const period = card.billingPeriodDays;
+    const dueDate = getDueDate(card.billGenerationDay, today, period);
     if (dueDate >= today) {
       reminders.push({ reason: 'due', date: dueDate });
+    }
+
+    // Previous-cycle due: previous statement date + billing period
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const currentStatement = clampBillDay(year, month, card.billGenerationDay);
+    const previousStatement = currentStatement >= today
+      ? clampBillDay(year, month - 1, card.billGenerationDay)
+      : currentStatement;
+    const prevDue = startOfDay(new Date(previousStatement.getTime() + period * BillingConstants.DAY_IN_MS));
+    if (prevDue < today) {
+      reminders.push({ reason: 'due', date: prevDue });
     }
   }
 
@@ -124,19 +172,10 @@ function getFutureRemindersForCard(
     if (renewalDate >= today) {
       reminders.push({ reason: 'renewal', date: renewalDate });
     }
-  }
-
-  if (Array.isArray(card.customReminders) && card.customReminders.length > 0) {
-    const year = today.getFullYear();
-    const month = today.getMonth();
-    card.customReminders.forEach((custom) => {
-      if (!custom || typeof custom.dayOfMonth !== 'number') {
-        return;
-      }
-      const dateThisMonth = clampBillDay(year, month, custom.dayOfMonth);
-      const nextDate = dateThisMonth >= today ? dateThisMonth : clampBillDay(year, month + 1, custom.dayOfMonth);
-      reminders.push({ reason: 'custom', date: nextDate, label: custom.label, customId: custom.id });
-    });
+    const prevRenewal = clampBillDay(today.getFullYear() - (renewalDate >= today ? 0 : 1), expiryMonthIndex, card.billGenerationDay);
+    if (prevRenewal < today) {
+      reminders.push({ reason: 'renewal', date: prevRenewal });
+    }
   }
 
   return reminders;
@@ -146,7 +185,8 @@ export async function getActiveReminders(
   cards: Card[],
   reminderWindowDays: number,
   today: Date = new Date(),
-  enabledReasons: Partial<Record<ReminderReason, boolean>> = { statement: true, due: true, renewal: true }
+  enabledReasons: Partial<Record<ReminderReason, boolean>> = { statement: true, due: true, renewal: true },
+  globalCustomReminders: GlobalCustomReminder[] = []
 ): Promise<CardReminder[]> {
   const normalizedToday = startOfDay(today);
   const dismissals = await getDismissalMap();
@@ -158,7 +198,11 @@ export async function getActiveReminders(
     );
     events.forEach(({ reason, date, label, customId }) => {
       const daysUntil = Math.round((date.getTime() - normalizedToday.getTime()) / BillingConstants.DAY_IN_MS);
-      if (daysUntil < 0 || daysUntil > reminderWindowDays) {
+      if (daysUntil < 0) {
+        if (Math.abs(daysUntil) > OVERDUE_GRACE_DAYS) {
+          return;
+        }
+      } else if (daysUntil > reminderWindowDays) {
         return;
       }
       const key = buildReminderKey(card.id, reason, date.getTime(), customId);
@@ -178,6 +222,60 @@ export async function getActiveReminders(
       reminders.push(reminder);
     });
   });
+
+  // Global custom reminders (not tied to any card)
+  if (globalCustomReminders.length > 0 && enabledReasons.custom !== false) {
+    const year = normalizedToday.getFullYear();
+    const month = normalizedToday.getMonth();
+    const globalCard: Card = {
+      id: 'global',
+      cardNumber: '',
+      cvv: '',
+      expiryDate: '',
+      bankName: 'Personal reminder',
+      cardVariant: '',
+      cardholderName: '',
+      cardType: 'Credit',
+      billGenerationDay: null,
+      billingPeriodDays: null,
+      skipReminders: false,
+      customReminders: [],
+      usageCount: 0,
+      isPinned: false,
+      createdAt: 0,
+      lastUsedAt: 0,
+    };
+
+    globalCustomReminders.forEach((custom) => {
+      if (!custom || typeof custom.dayOfMonth !== 'number') return;
+      const dateThisMonth = clampBillDay(year, month, custom.dayOfMonth);
+      const nextDate = dateThisMonth >= normalizedToday
+        ? dateThisMonth
+        : clampBillDay(year, month + 1, custom.dayOfMonth);
+
+      const candidates = [] as Date[];
+      if (dateThisMonth < normalizedToday) {
+        candidates.push(dateThisMonth);
+      }
+      candidates.push(nextDate);
+
+      candidates.forEach((date) => {
+        const daysUntil = Math.round((date.getTime() - normalizedToday.getTime()) / BillingConstants.DAY_IN_MS);
+        if (daysUntil < -OVERDUE_GRACE_DAYS || daysUntil > reminderWindowDays) {
+          return;
+        }
+        const key = buildReminderKey(globalCard.id, 'custom', date.getTime(), custom.id);
+        if (dismissals[key]) return;
+        const reminder = createReminder(globalCard, 'custom', date, normalizedToday, custom.id);
+        reminder.label = custom.title;
+        reminder.sublabel = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+        if (custom.label) {
+          reminder.note = custom.label;
+        }
+        reminders.push(reminder);
+      });
+    });
+  }
 
   reminders.sort((a, b) => a.targetDate - b.targetDate);
   return reminders;

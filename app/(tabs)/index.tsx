@@ -9,7 +9,7 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { filterCards, getSortedCards, sortCards } from '@/services/cards.service';
 import { CardSortOrder, getAppPreferences, updateAppPreferences } from '@/services/preferences.service';
-import { CardReminder, getActiveReminders } from '@/services/reminders.service';
+import { CardReminder, getActiveReminders, getGlobalCustomReminders } from '@/services/reminders.service';
 import { incrementUsage } from '@/services/storage.service';
 import { Card } from '@/types/card.types';
 import { Ionicons } from '@expo/vector-icons';
@@ -53,14 +53,19 @@ export default function HomeScreen() {
 
   const loadCards = useCallback(async () => {
     try {
-      const [loadedCards, prefs] = await Promise.all([getSortedCards(), getAppPreferences()]);
+      const [loadedCards, prefs, globalCustom] = await Promise.all([
+        getSortedCards(),
+        getAppPreferences(),
+        getGlobalCustomReminders(),
+      ]);
       setCards(loadedCards);
       setSortOrder(prefs.cardSortOrder ?? 'usage');
       const reminders = await getActiveReminders(
         loadedCards,
         prefs.reminderWindowDays,
         new Date(),
-        prefs.reminderTypes
+        prefs.reminderTypes,
+        globalCustom
       );
       setReminderCount(reminders.length);
       setReminderPreview(reminders[0] ?? null);

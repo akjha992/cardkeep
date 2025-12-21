@@ -87,8 +87,12 @@ export async function getCards(): Promise<Card[]> {
         typeof card.billGenerationDay === 'number'
           ? card.billGenerationDay
           : card.billGenerationDay ?? null,
-      billDueDay:
-        typeof card.billDueDay === 'number' ? card.billDueDay : card.billDueDay ?? null,
+      billingPeriodDays:
+        typeof card.billingPeriodDays === 'number'
+          ? card.billingPeriodDays
+          : typeof (card as any).billDueDay === 'number'
+            ? (card as any).billDueDay
+            : null,
       customReminders: Array.isArray(card.customReminders) ? card.customReminders : [],
     }));
   } catch (error) {

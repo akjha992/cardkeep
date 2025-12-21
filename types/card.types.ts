@@ -18,7 +18,7 @@ export interface Card {
   cardholderName: string; // Cardholder name
   cardType: 'Credit' | 'Debit'; // Card type (required)
   billGenerationDay?: number | null; // Optional bill generation day (1-31) for credit cards
-  billDueDay?: number | null; // Optional bill due day (1-31) for credit cards
+  billingPeriodDays?: number | null; // Optional billing period (days between statement and due)
   skipReminders?: boolean; // If true, do not generate reminders for this card
   customReminders?: CardCustomReminder[]; // User-defined reminders
   usageCount: number; // Number of times card number is copied
